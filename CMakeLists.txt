@@ -28,11 +28,17 @@ find_package(JKQTMath6          REQUIRED)
 find_package(JKQTFastPlotter6   REQUIRED)
 find_package(JKQTPlotter6       REQUIRED)
 
+include_directories(Toolkits)
+
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        Toolkits/TauAppSettingController.cpp
+        Toolkits/TauAppSettingController.h
+        Toolkits/TauApplication.cpp
+        Toolkits/TauApplication.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
