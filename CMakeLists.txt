@@ -12,20 +12,21 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
 
-find_package(QT NAMES Qt5 COMPONENTS Core Gui Widgets PrintSupport Svg Xml OpenGL Charts REQUIRED)
+find_package(QT NAMES Qt6 COMPONENTS Core Gui Widgets PrintSupport Svg Xml OpenGL Charts REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Widgets PrintSupport Svg Xml OpenGL Charts REQUIRED)
 
-include_directories(/usr/local/qwt-6.3.0-dev/include)
-find_library(QWT NAMES qwt PATHS /usr/local/qwt-6.3.0-dev/lib REQUIRED)
+include_directories(/usr/local/qwt-6.2.0/include)
+find_library(QWT NAMES qwt PATHS /usr/local/qwt-6.2.0/lib REQUIRED)
 
-set(JKQTCommonSharedLib_DIR      "/usr/local/lib/cmake")
-set(JKQTMathTextSharedLib_DIR    "/usr/local/lib/cmake")
-set(JKQTFastPlotterSharedLib_DIR "/usr/local/lib/cmake")
-set(JKQTPlotterSharedLib_DIR     "/usr/local/lib/cmake")
-find_package(JKQTCommonSharedLib        REQUIRED)
-find_package(JKQTMathTextSharedLib      REQUIRED)
-find_package(JKQTFastPlotterSharedLib   REQUIRED)
-find_package(JKQTPlotterSharedLib       REQUIRED)
+set(JKQTCommon6_DIR      "/usr/local/lib/cmake/JKQTPlotter6")
+set(JKQTMath6_DIR        "/usr/local/lib/cmake/JKQTPlotter6")
+set(JKQTMathText6_DIR    "/usr/local/lib/cmake/JKQTPlotter6")
+set(JKQTFastPlotter6_DIR "/usr/local/lib/cmake/JKQTPlotter6")
+set(JKQTPlotter6_DIR     "/usr/local/lib/cmake/JKQTPlotter6")
+find_package(JKQTCommon6        REQUIRED)
+find_package(JKQTMathText6      REQUIRED)
+find_package(JKQTFastPlotter6   REQUIRED)
+find_package(JKQTPlotter6       REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -57,6 +58,7 @@ else()
     endif()
 endif()
 
+target_link_directories(TestingQWT PRIVATE /usr/local/lib)
 target_link_libraries(TestingQWT PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Charts
@@ -66,10 +68,11 @@ target_link_libraries(TestingQWT PRIVATE
     Qt${QT_VERSION_MAJOR}::Svg
     Qt${QT_VERSION_MAJOR}::Xml
     Qt${QT_VERSION_MAJOR}::OpenGL
-    JKQTCommonSharedLib
-    JKQTMathTextSharedLib
-    JKQTFastPlotterSharedLib
-    JKQTPlotterSharedLib
+    JKQTCommon6
+    JKQTMathText6
+    JKQTMath6
+    JKQTFastPlotter6
+    JKQTPlotter6
 )
 
 set_target_properties(TestingQWT PROPERTIES
