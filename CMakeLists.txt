@@ -8,9 +8,8 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
 
 find_package(QT NAMES Qt6 COMPONENTS Core Gui Widgets PrintSupport Svg Xml OpenGL Charts REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Widgets PrintSupport Svg Xml OpenGL Charts REQUIRED)
@@ -25,6 +24,7 @@ set(JKQTFastPlotter6_DIR "/usr/local/lib/cmake/JKQTPlotter6")
 set(JKQTPlotter6_DIR     "/usr/local/lib/cmake/JKQTPlotter6")
 find_package(JKQTCommon6        REQUIRED)
 find_package(JKQTMathText6      REQUIRED)
+find_package(JKQTMath6          REQUIRED)
 find_package(JKQTFastPlotter6   REQUIRED)
 find_package(JKQTPlotter6       REQUIRED)
 
@@ -68,11 +68,11 @@ target_link_libraries(TestingQWT PRIVATE
     Qt${QT_VERSION_MAJOR}::Svg
     Qt${QT_VERSION_MAJOR}::Xml
     Qt${QT_VERSION_MAJOR}::OpenGL
-    JKQTCommon6
-    JKQTMathText6
-    JKQTMath6
-    JKQTFastPlotter6
-    JKQTPlotter6
+    JKQTPlotter6::JKQTCommon6
+    JKQTPlotter6::JKQTMathText6
+    JKQTPlotter6::JKQTMath6
+    JKQTPlotter6::JKQTFastPlotter6
+    JKQTPlotter6::JKQTPlotter6
 )
 
 set_target_properties(TestingQWT PROPERTIES
