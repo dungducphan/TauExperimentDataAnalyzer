@@ -3,12 +3,21 @@
 #include <jkqtplotter/jkqtplotter.h>
 #include <jkqtplotter/graphs/jkqtpimage.h>
 
+#include <TH1.h>
+#include <TCanvas.h>
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
+
+    const auto test = new TH1D("h", "h;E;E", 1000, -5, 5);
+    test->FillRandom("gaus", 10000);
+    const auto c = new TCanvas();
+    test->Draw();
+    c->SaveAs("TEST.pdf");
 
     JKQTPlotter plot;
     // 1. create a plotter window and get a pointer to the internal datastore (for convenience)
