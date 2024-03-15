@@ -15,4 +15,7 @@ public:
 
 private:
     Ui::FocusDiagnosticsMainWindow *ui;
+
+    void InitializeUI();
+    void UIFollowModeChanged();
 };
