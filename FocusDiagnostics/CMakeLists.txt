@@ -17,8 +17,10 @@ set(TARGET_DEPENDENCIES
 #        JKQTPlotter6::JKQTPlotter6
 #        ${QWT}
 #        ${ROOT_LIBRARIES}
-        ${PVAccess}
-        ${PVData}
+        ${EPICS7_PVAccess}
+        ${EPICS7_PVData}
+        ${EPICS7_Com}
+        ${EPICS7_CA}
 )
 
 include(${PROJECT_SOURCE_DIR}/ExecutableTarget.cmake)

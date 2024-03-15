@@ -61,11 +61,12 @@ find_package(JKQTPlotter6       REQUIRED)
 
 ## EPICS
 include_directories(${EPICS_INCLUDE_DIR})
-find_library(CA         NAMES Com ca     PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
-find_library(PVAccess   NAMES pvAccess   PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
-find_library(PVData     NAMES pvData     PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
-find_library(PVDatabase NAMES pvDatabase PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
-find_library(PVAClient  NAMES pvaClient  PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_Com        NAMES Com        PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_CA         NAMES ca         PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_PVAccess   NAMES pvAccess   PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_PVData     NAMES pvData     PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_PVDatabase NAMES pvDatabase PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_PVAClient  NAMES pvaClient  PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
 
 
 #----------------------------------------------------------------------------------------------------------------------#
