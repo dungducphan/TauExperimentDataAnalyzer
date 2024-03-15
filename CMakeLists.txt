@@ -29,12 +29,10 @@ include(${ROOT_USE_FILE})
 set(JKQTCommon6_DIR      "/usr/local/lib/cmake/JKQTPlotter6")
 set(JKQTMath6_DIR        "/usr/local/lib/cmake/JKQTPlotter6")
 set(JKQTMathText6_DIR    "/usr/local/lib/cmake/JKQTPlotter6")
-set(JKQTFastPlotter6_DIR "/usr/local/lib/cmake/JKQTPlotter6")
 set(JKQTPlotter6_DIR     "/usr/local/lib/cmake/JKQTPlotter6")
 find_package(JKQTCommon6        REQUIRED)
 find_package(JKQTMathText6      REQUIRED)
 find_package(JKQTMath6          REQUIRED)
-find_package(JKQTFastPlotter6   REQUIRED)
 find_package(JKQTPlotter6       REQUIRED)
 
 # Applications

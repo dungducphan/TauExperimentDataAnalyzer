@@ -14,7 +14,6 @@ set(TARGET_DEPENDENCIES
         JKQTPlotter6::JKQTCommon6
         JKQTPlotter6::JKQTMathText6
         JKQTPlotter6::JKQTMath6
-        JKQTPlotter6::JKQTFastPlotter6
         JKQTPlotter6::JKQTPlotter6
         ${ROOT_LIBRARIES}
 )
