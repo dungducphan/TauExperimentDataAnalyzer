@@ -30,11 +30,12 @@ set(JKQTMathText6_DIR    ${JKQTPLOTTER_CMAKE_MODULE_DIR})
 set(JKQTPlotter6_DIR     ${JKQTPLOTTER_CMAKE_MODULE_DIR})
 
 # EPICS paths
-set(EPICS_LIBRARY_DIR /home/ubuntu/Applications/epics/epics-base/lib/linux-x86_64)
+set(EPICS_BASE_DIR /home/ubuntu/Applications/epics/epics-base-install)
+set(EPICS_LIBRARY_DIR ${EPICS_BASE_DIR}/lib/linux-x86_64)
 set(EPICS_INCLUDE_DIR
-        /home/ubuntu/Applications/epics/epics-base/include
-        /home/ubuntu/Applications/epics/epics-base/include/compiler/gcc
-        /home/ubuntu/Applications/epics/epics-base/include/os/Linux
+        ${EPICS_BASE_DIR}/include
+        ${EPICS_BASE_DIR}/include/compiler/gcc
+        ${EPICS_BASE_DIR}/include/os/Linux
 )
 
 #----------------------------------------------------------------------------------------------------------------------#

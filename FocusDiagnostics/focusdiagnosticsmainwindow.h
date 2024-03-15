@@ -1,22 +1,18 @@
-#ifndef FOCUSDIAGNOSTICSMAINWINDOW_H
-#define FOCUSDIAGNOSTICSMAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 
 namespace Ui {
-class FocusDiagnosticsMainWindow;
+    class FocusDiagnosticsMainWindow;
 }
 
-class FocusDiagnosticsMainWindow : public QMainWindow
-{
+class FocusDiagnosticsMainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
     explicit FocusDiagnosticsMainWindow(QWidget *parent = nullptr);
-    ~FocusDiagnosticsMainWindow();
+    ~FocusDiagnosticsMainWindow() override;
 
 private:
     Ui::FocusDiagnosticsMainWindow *ui;
 };
-
-#endif // FOCUSDIAGNOSTICSMAINWINDOW_H
