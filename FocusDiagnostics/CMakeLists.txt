@@ -11,11 +11,14 @@ set(TARGET_NAME FocusDiagnostics)
 
 set(TARGET_DEPENDENCIES
         Qt${QT_VERSION_MAJOR}::Widgets
-        JKQTPlotter6::JKQTCommon6
-        JKQTPlotter6::JKQTMathText6
-        JKQTPlotter6::JKQTMath6
-        JKQTPlotter6::JKQTPlotter6
-        ${ROOT_LIBRARIES}
+#        JKQTPlotter6::JKQTCommon6
+#        JKQTPlotter6::JKQTMathText6
+#        JKQTPlotter6::JKQTMath6
+#        JKQTPlotter6::JKQTPlotter6
+#        ${QWT}
+#        ${ROOT_LIBRARIES}
+        ${PVAccess}
+        ${PVData}
 )
 
 include(${PROJECT_SOURCE_DIR}/ExecutableTarget.cmake)
