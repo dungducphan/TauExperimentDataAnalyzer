@@ -1,5 +1,5 @@
-#include <focusdiagnosticsmainwindow.h>
-#include <ui_focusdiagnosticsmainwindow.h>
+#include "focusdiagnosticsmainwindow.h"
+#include "FocusDiagnostics_autogen/include/ui_focusdiagnosticsmainwindow.h"
 
 FocusDiagnosticsMainWindow::FocusDiagnosticsMainWindow(QWidget *parent) :
     QMainWindow(parent),

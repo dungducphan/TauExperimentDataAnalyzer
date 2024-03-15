@@ -5,7 +5,7 @@
 #include <pva/client.h>
 
 // Custom
-#include <focusdiagnosticsmainwindow.h>
+#include "GUI/focusdiagnosticsmainwindow.h"
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);

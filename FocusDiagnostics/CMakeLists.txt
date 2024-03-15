@@ -2,9 +2,9 @@
 
 set(TARGET_SOURCES
         main.cpp
-        focusdiagnosticsmainwindow.cpp
-        focusdiagnosticsmainwindow.h
-        focusdiagnosticsmainwindow.ui
+        GUI/focusdiagnosticsmainwindow.cpp
+        GUI/focusdiagnosticsmainwindow.h
+        GUI/focusdiagnosticsmainwindow.ui
 )
 
 set(TARGET_NAME FocusDiagnostics)
