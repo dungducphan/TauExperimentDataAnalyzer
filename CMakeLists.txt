@@ -12,7 +12,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Dependencies
@@ -41,3 +41,4 @@ find_package(JKQTPlotter6       REQUIRED)
 
 add_subdirectory(CompilingTests)
 add_subdirectory(BoxPlot)
+add_subdirectory(FocusDiagnostics)
