@@ -20,7 +20,7 @@ set(TARGET_DEPENDENCIES
         JKQTPlotter6::JKQTMath6
         JKQTPlotter6::JKQTPlotter6
         ${QWT}
-        ${ROOT_LIBRARIES}
+        ${ROOT_LIBRARIES} Core Hist Tree MathCore ASImage
         ${EPICS7_PVAccess}
         ${EPICS7_PVData}
         ${EPICS7_Com}

@@ -19,6 +19,7 @@ public slots:
     void OnAcquireButtonClicked();
     void OnModeChanged(int index) const;
     void OnBeamEnergyChanged(double beamEnergy);
+    void OnFocusImageFileSelected(const QString& filePath) const;
 
 public:
     Ui::FocusDiagnosticsMainWindow *ui;

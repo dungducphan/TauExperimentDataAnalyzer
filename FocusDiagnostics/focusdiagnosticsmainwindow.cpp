@@ -36,11 +36,17 @@ void FocusDiagnosticsMainWindow::OnAcquireButtonClicked() {
 void FocusDiagnosticsMainWindow::OnModeChanged(int index) const {
     if (index == 0) {
         ui->stackedWidget->setCurrentIndex(0);
+        ui->tabWidget->setTabEnabled(1, true);
     } else if (index == 1) {
         ui->stackedWidget->setCurrentIndex(1);
+        ui->tabWidget->setTabEnabled(1, false);
     }
 }
 
 void FocusDiagnosticsMainWindow::OnBeamEnergyChanged(double beamEnergy) {
 
+}
+
+void FocusDiagnosticsMainWindow::OnFocusImageFileSelected(const QString &filePath) const {
+    ui->lineedit_FOCUS_IMAGE_FILENAME->setText(filePath);
 }
