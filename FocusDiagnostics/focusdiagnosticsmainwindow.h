@@ -13,9 +13,13 @@ public:
     explicit FocusDiagnosticsMainWindow(QWidget *parent = nullptr);
     ~FocusDiagnosticsMainWindow() override;
 
-private:
-    Ui::FocusDiagnosticsMainWindow *ui;
+public slots:
+    void OnGainChanged(int gain) const;
+    void OnExposureTimeChanged(int exposureTime) const;
+    void OnAcquireButtonClicked();
+    void OnModeChanged(int index) const;
+    void OnBeamEnergyChanged(double beamEnergy);
 
-    void InitializeUI();
-    void UIFollowModeChanged();
+public:
+    Ui::FocusDiagnosticsMainWindow *ui;
 };

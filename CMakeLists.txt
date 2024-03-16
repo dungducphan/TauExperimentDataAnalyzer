@@ -69,11 +69,9 @@ find_library(EPICS7_PVData     NAMES pvData     PATHS ${EPICS_LIBRARY_DIR} REQUI
 find_library(EPICS7_PVDatabase NAMES pvDatabase PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
 find_library(EPICS7_PVAClient  NAMES pvaClient  PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
 
-
 #----------------------------------------------------------------------------------------------------------------------#
 # Applications
 #----------------------------------------------------------------------------------------------------------------------#
 
 add_subdirectory(CompilingTests)
-add_subdirectory(BoxPlot)
 add_subdirectory(FocusDiagnostics)
