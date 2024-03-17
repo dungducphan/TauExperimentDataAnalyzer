@@ -22,8 +22,6 @@ void Controller::Initialize() {
     imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForText(true);
     imageDataModel->GetFocusImagePlot()->setGrid(false);
     imageDataModel->GetFocusImagePlot()->setMousePositionShown(false);
-//    imageDataModel->GetFocusImagePlot()->getXAxis()->setDrawMode1(JKQTPCADMLineTicks);
-//    imageDataModel->GetFocusImagePlot()->getYAxis()->setDrawMode1(JKQTPCADMLineTicks);
 
     imageDataModel->GetFocusImagePlot_ProjectionX()->getPlotter()->setUseAntiAliasingForGraphs(true);
     imageDataModel->GetFocusImagePlot_ProjectionX()->getPlotter()->setUseAntiAliasingForSystem(true);

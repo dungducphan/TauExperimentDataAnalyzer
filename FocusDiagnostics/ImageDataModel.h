@@ -5,10 +5,15 @@
 
 // ROOT
 #include <TASImage.h>
+#include <TH2.h>
+#include <TCanvas.h>
+#include <TF2.h>
+#include <TMath.h>
 
 // JKQtPlotter
 #include <jkqtplotter/jkqtplotter.h>
 #include <jkqtplotter/graphs/jkqtpimage.h>
+#include <jkqtplotter/graphs/jkqtpstatisticsadaptors.h>
 
 class ImageDataModel : public QObject {
     Q_OBJECT
@@ -36,7 +41,6 @@ private:
 
     TASImage* focusImage;
     JKQTPlotter* focusImagePlot;
-    JKQTPDatastore* datastore;
     JKQTPlotter* focusImagePlot_ProjectionX;
     JKQTPlotter* focusImagePlot_ProjectionY;
 };

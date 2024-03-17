@@ -45,50 +45,18 @@ int main(int argc, char *argv[]) {
     plothistBottom->setGrid(false);
     plothistBottom->setMousePositionShown(false);
 
-
-//    JKQTPlotter* plotkde=new JKQTPlotter(datastore1, &mainWidget);
-//    plotkde->getPlotter()->setPlotLabel("Kernel Density Estimate");
-//    lay->addWidget(plotkde,0,2);
-//    JKQTPlotter* plotkdeRight=new JKQTPlotter(datastore1, &mainWidget);
-//    lay->addWidget(plotkdeRight,0,3);
-//    JKQTPlotter* plotkdeBottom=new JKQTPlotter(datastore1, &mainWidget);
-//    lay->addWidget(plotkdeBottom,1,2);
-//    plotkdeRight->synchronizeYToMaster(plotkde);
-//    plotkdeRight->setAbsoluteX(0,1);
-//    plotkdeRight->getXAxis()->setShowZeroAxis(false);
-//    plotkdeRight->getYAxis()->setShowZeroAxis(false);
-//    plotkdeRight->getYAxis()->setDrawMode1(JKQTPCADMLine);
-//    plotkdeRight->getYAxis()->setDrawMode2(JKQTPCADMLineTicks);
-//    plotkdeRight->setGrid(false);
-//    plotkdeBottom->synchronizeXToMaster(plotkde);
-//    plotkdeBottom->setAbsoluteY(0,1);
-//    plotkdeBottom->getYAxis()->setInverted(true);
-//    plotkdeBottom->getXAxis()->setShowZeroAxis(false);
-//    plotkdeBottom->getYAxis()->setShowZeroAxis(false);
-//    plotkdeBottom->getXAxis()->setDrawMode1(JKQTPCADMLine);
-//    plotkdeBottom->getXAxis()->setDrawMode2(JKQTPCADMLineTicks);
-//    plotkdeBottom->setGrid(false);
-//    plotkdeBottom->setMousePositionShown(false);
-
     lay->setColumnStretch(0,1);
     lay->setColumnStretch(1,3);
-    lay->setColumnStretch(2,3);
-    lay->setColumnStretch(3,1);
     lay->setRowStretch(0,3);
     lay->setRowStretch(1,1);
 
-
-    // 2.1. Now we create two vectors with random values
-    //    randomdatacolx: random x-positions, drawn from one of two gaussian distributions
-    //    randomdatacoly: random y-positions, drawn from one of two gaussian distributions
-    //    randomdatacoldist: indicates, which if the two sets of gaussian distributions was chosen for each datapoint
     size_t randomdatacolx_small=datastore1->addColumn("random data, x");
     size_t randomdatacoly_small=datastore1->addColumn("random data, y");
     size_t randomdatacoldist_small=datastore1->addColumn("random data, distribution/class");
     size_t randomdatacolx=datastore1->addColumn("random data, x");
     size_t randomdatacoly=datastore1->addColumn("random data, y");
     size_t randomdatacoldist=datastore1->addColumn("random data, distribution/class");
-    // random number generators:
+
     std::random_device rd;
     std::mt19937 gen{rd()};
     gen.seed(12345);
@@ -130,26 +98,6 @@ int main(int argc, char *argv[]) {
     gDataHist->setSymbolColor(QColorWithAlphaF(QColor("red"), 0.7));
     gDataHist->setDrawLine(false);
     gDataHist->setTitle(QString("random data, $N="+QString::number(datastore1->getRows(randomdatacoldist))+"$"));
-    JKQTPXYParametrizedScatterGraph* gDataKDE;
-    plotkde->addGraph(gDataKDE=new JKQTPXYParametrizedScatterGraph(plotkde));
-    gDataKDE->setXYColumns(randomdatacolx_small,randomdatacoly_small);
-    gDataKDE->setSymbolColumn(randomdatacoldist_small);
-    gDataKDE->setSymbolSize(3);
-    gDataKDE->setSymbolColor(QColorWithAlphaF(QColor("red"), 0.7));
-    gDataKDE->setMappedSymbolColumnFunctor(mapped);
-    gDataKDE->setDrawLine(false);
-    gDataKDE->setTitle(QString("random data, $N="+QString::number(datastore1->getRows(randomdatacoldist_small))+"$"));
-
-    // 2.3. to visualize the initial distributions, we draw an ellipse indicating the
-    //      variance of the distributions
-    JKQTPGeoEllipse* gEll1Hist;
-    JKQTPGeoEllipse* gEll2Hist;
-    JKQTPGeoEllipse* gEll1KDE;
-    JKQTPGeoEllipse* gEll2KDE;
-    plothist->addGraph(gEll1Hist=new JKQTPGeoEllipse(plothist, d1x.mean(), d1y.mean(),d1x.stddev()*2.0,d1y.stddev()*2.0));
-    plothist->addGraph(gEll2Hist=new JKQTPGeoEllipse(plothist, d2x.mean(), d2y.mean(),d2x.stddev()*2.0,d2y.stddev()*2.0));
-    plotkde->addGraph(gEll1KDE=new JKQTPGeoEllipse(plothist, d1x.mean(), d1y.mean(),d1x.stddev()*2.0,d1y.stddev()*2.0));
-    plotkde->addGraph(gEll2KDE=new JKQTPGeoEllipse(plothist, d2x.mean(), d2y.mean(),d2x.stddev()*2.0,d2y.stddev()*2.0));
 
 
     // 3. Marginal (1D) Statistics of the x-position and y-position deistributions:
@@ -158,16 +106,6 @@ int main(int argc, char *argv[]) {
     jkqtpstatAddHHistogram1DAutoranged(plothistBottom->getPlotter(),  datastore1->begin(randomdatacolx), datastore1->end(randomdatacolx), 1.0, true);
     jkqtpstatAddVHistogram1DAutoranged(plothistLeft->getPlotter(),  datastore1->begin(randomdatacoly), datastore1->end(randomdatacoly), 1.0, true);
     qDebug()<<"histogram, 1D: "<<timer.elapsed()/2.0<<"ms";
-    // 3.2. Also we calculate the x/y marginal kernel density estimates, as desribed in https://github.com/jkriege2/JKQtPlotter/tree/master/examples/datastore_statistics
-    timer.start();
-    double bwx=jkqtpstatEstimateKDEBandwidth(datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small));
-    qDebug()<<bwx;
-    jkqtpstatAddHKDE1DAutoranged(plotkdeBottom->getPlotter(),  datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small), 0.01, &jkqtpstatKernel1DGaussian, bwx);
-    double bwy=jkqtpstatEstimateKDEBandwidth(datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small));
-    qDebug()<<bwy;
-    jkqtpstatAddVKDE1DAutoranged(plotkdeRight->getPlotter(),  datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small), 0.01, &jkqtpstatKernel1DGaussian, bwy);
-    qDebug()<<"KDE+bandwidth, 1D: "<<timer.elapsed()/2.0<<"ms";
-
 
     // 4. 2D Histogram
     double xmin=0, xmax=0;
@@ -194,52 +132,6 @@ int main(int argc, char *argv[]) {
     qDebug()<<xmin<<xmax<<Nx;
     qDebug()<<ymin<<ymax<<Ny;
 
-    //   There also exist "adaptors", which execute the complete code above in one call.
-    //   Two flavors exist:
-    //      jkqtpstatAddHistogram2DImage() adds an image plot as shown above
-    //      jkqtpstatAddHistogram2DContour() adds a contour plot
-    //jkqtpstatAddHistogram2DImage(plothist->getPlotter(), datastore1->begin(randomdatacolx), datastore1->end(randomdatacolx), datastore1->begin(randomdatacoly), datastore1->end(randomdatacoly), Nx, Ny, true);
-    //jkqtpstatAddHistogram2DContour(plothist->getPlotter(), datastore1->begin(randomdatacolx), datastore1->end(randomdatacolx), datastore1->begin(randomdatacoly), datastore1->end(randomdatacoly), size_t(50),size_t(50), true);
-
-
-
-    // 5. 2D KDE
-    xmin=0; xmax=0;
-    ymin=0; ymax=0;
-    timer.start();
-    jkqtpstatMinMax(datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small), xmin,xmax);
-    jkqtpstatMinMax(datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small), ymin,ymax);
-    Nx=jkqtp_ceilTo<size_t>((xmax-xmin)/0.1);
-    Ny=jkqtp_ceilTo<size_t>((ymax-ymin)/0.1);
-    bwx=jkqtpstatEstimateKDEBandwidth2D(datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small));
-    qDebug()<<bwx;
-    bwy=jkqtpstatEstimateKDEBandwidth2D(datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small));
-    qDebug()<<bwy;
-    qDebug()<<xmin<<xmax<<Nx;
-    qDebug()<<ymin<<ymax<<Ny;
-    size_t kdecol=datastore1->addImageColumn(Nx, Ny, "2d KDE");
-    jkqtpstatKDE2D(datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small), datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small),
-                   datastore1->begin(kdecol),
-                   xmin, xmax, ymin, ymax, Nx, Ny,
-                   &jkqtpstatKernel2DGaussian, bwx, bwy);
-    qDebug()<<"KDE, 2D: "<<timer.elapsed()<<"ms";
-    JKQTPColumnMathImage* gKDE;
-    plotkde->addGraph(gKDE=new JKQTPColumnMathImage(plotkde));
-    gKDE->setImageColumn(static_cast<int>(kdecol));
-    gKDE->setX(xmin);
-    gKDE->setY(ymin);
-    gKDE->setWidth(xmax-xmin);
-    gKDE->setHeight(ymax-ymin);
-    gKDE->setTitle("2D KDE");
-
-    //   There also exist "adaptors", which execute the complete code above in one call.
-    //   Two flavors exist:
-    //      jkqtpstatAddKDE2DImage() adds an image plot as shown above
-    //      jkqtpstatAddKDE2DContour() adds a contour plot
-    //jkqtpstatAddKDE2DImage(plotkde->getPlotter(), datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small), datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small), Nx, Ny, &jkqtpstatKernel2DGaussian, bwx, bwy);
-    //jkqtpstatAddKDE2DContour(plotkde->getPlotter(), datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small), datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small), Nx, Ny, &jkqtpstatKernel2DGaussian, bwx, bwy);
-
-
 
     // autoscale the plot so the graph is contained
     plothist->zoomToFit();
@@ -248,24 +140,12 @@ int main(int argc, char *argv[]) {
     plothist->getYAxis()->setShowZeroAxis(false);
     plothist->getMainKey()->setBackgroundColor(QColorWithAlphaF("white", 0.25), Qt::SolidPattern);
     plothist->getPlotter()->moveGraphTop(gDataHist);
-    plothist->getPlotter()->moveGraphTop(gEll1Hist);
-    plothist->getPlotter()->moveGraphTop(gEll2Hist);
     plothistBottom->zoomToFit(false, true);
     plothistLeft->zoomToFit(true, false);
-    plotkde->zoomToFit();
-    plotkde->setGrid(false);
-    plotkde->getXAxis()->setShowZeroAxis(false);
-    plotkde->getYAxis()->setShowZeroAxis(false);
-    plotkde->getMainKey()->setBackgroundColor(QColorWithAlphaF("white", 0.25), Qt::SolidPattern);
-    plotkde->getPlotter()->moveGraphTop(gDataKDE);
-    plotkde->getPlotter()->moveGraphTop(gEll1KDE);
-    plotkde->getPlotter()->moveGraphTop(gEll2KDE);
-    plotkdeBottom->zoomToFit(false, true);
-    plotkdeRight->zoomToFit(true, false);
 
     // show plotter and make it a decent size
     mainWidget.show();
-    mainWidget.resize(1200,600);
+    mainWidget.resize(650,600);
 
     return QApplication::exec();
 }
