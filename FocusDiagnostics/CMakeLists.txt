@@ -25,6 +25,7 @@ set(TARGET_DEPENDENCIES
         ${EPICS7_PVData}
         ${EPICS7_Com}
         ${EPICS7_CA}
+        TIFF::TIFF
 )
 
 qt_add_executable(${TARGET_NAME} MANUAL_FINALIZATION ${TARGET_SOURCES})

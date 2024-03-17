@@ -3,6 +3,9 @@
 // Qt
 #include <QObject>
 
+// TIFF
+#include <tiffio.h>
+
 // ROOT
 #include <TASImage.h>
 #include <TH2.h>
@@ -13,7 +16,8 @@
 // JKQtPlotter
 #include <jkqtplotter/jkqtplotter.h>
 #include <jkqtplotter/graphs/jkqtpimage.h>
-#include <jkqtplotter/graphs/jkqtpstatisticsadaptors.h>
+#include "jkqtplotter/graphs/jkqtpfilledcurve.h"
+#include "jkqtplotter/graphs/jkqtpgeometric.h"
 
 class ImageDataModel : public QObject {
     Q_OBJECT
@@ -37,10 +41,24 @@ private:
     int gainInDecibels;
     int exposureTimeInMicroseconds;
 
-    void JKQtPlotter_HandleFocusImageFile();
+    void JKQtPlotter_HandleFocusImageFile(const QString &filePath);
+    void JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage();
+    void JKQtPlotter_HandleFocusImageFile_GetCentroidPosition();
+    void JKQtPlotter_HandleFocusImageFile_PlotImage();
+    void JKQtPlotter_HandleFocusImageFile_PlotProjections();
 
-    TASImage* focusImage;
+    TIFF* focusImage;
+    uint32_t* pixelDataFromImage;
+    uint32_t NPixelX;
+    uint32_t NPixelY;
+    int thresholdPixelValue;
+    const double cameraSensorWidthInMillimeters;
+    const double cameraSensorHeightInMillimeters;
     JKQTPlotter* focusImagePlot;
+    int centroidNX; // centroid position in pixels
+    int centroidNY; // centroid position in pixels
+    double centroidX; // centroid position in millimeters
+    double centroidY; // centroid position in millimeters
     JKQTPlotter* focusImagePlot_ProjectionX;
     JKQTPlotter* focusImagePlot_ProjectionY;
 };
