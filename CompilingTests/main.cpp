@@ -1,109 +1,271 @@
 #include <QApplication>
+#include "jkqtplotter/jkqtplotter.h"
+#include "jkqtplotter/graphs/jkqtpimage.h"
+#include "jkqtplotter/graphs/jkqtpstatisticsadaptors.h"
+#include "jkqtplotter/graphs/jkqtpgeometric.h"
+#include "jkqtplotter/graphs/jkqtpscatter.h"
+#include "jkqtmath/jkqtpstatisticstools.h"
+#include "jkqtcommon/jkqtpstringtools.h"
+#include <random>
 #include <cmath>
-#include <jkqtplotter/jkqtplotter.h>
-#include <jkqtplotter/graphs/jkqtpimage.h>
 
-#include <TH1.h>
-#include <TCanvas.h>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
-    const auto test = new TH1D("h", "h;E;E", 1000, -5, 5);
-    test->FillRandom("gaus", 10000);
-    const auto c = new TCanvas();
-    test->Draw();
-    c->SaveAs("TEST.pdf");
+    QElapsedTimer timer;
 
-    JKQTPlotter plot;
-    // 1. create a plotter window and get a pointer to the internal datastore (for convenience)
-    plot.getPlotter()->setUseAntiAliasingForGraphs(true); // nicer (but slower) plotting
-    plot.getPlotter()->setUseAntiAliasingForSystem(true); // nicer (but slower) plotting
-    plot.getPlotter()->setUseAntiAliasingForText(true); // nicer (but slower) text rendering
-    JKQTPDatastore* ds=plot.getDatastore();
+    // 1. create a window with several plotters and get a pointer to the internal datastores (for convenience)
+    QWidget mainWidget;
+    QGridLayout* lay;
+    mainWidget.setLayout(lay=new QGridLayout);
+    JKQTPlotter* plothist=new JKQTPlotter(&mainWidget);
+    lay->addWidget(plothist,0,1);
+    plothist->getPlotter()->setPlotLabel("Histograms");
+    JKQTPDatastore* datastore1=plothist->getDatastore();
+    JKQTPlotter* plothistLeft=new JKQTPlotter(datastore1, &mainWidget);
+    lay->addWidget(plothistLeft,0,0);
+    JKQTPlotter* plothistBottom=new JKQTPlotter(datastore1, &mainWidget);
+    lay->addWidget(plothistBottom,1,1);
+    plothistLeft->synchronizeYToMaster(plothist);
+    plothistLeft->setAbsoluteX(0,1);
+    plothistLeft->getXAxis()->setInverted(true);
+    plothistLeft->getXAxis()->setShowZeroAxis(false);
+    plothistLeft->getYAxis()->setShowZeroAxis(false);
+    plothistLeft->getYAxis()->setDrawMode1(JKQTPCADMLine);
+    plothistLeft->getYAxis()->setDrawMode2(JKQTPCADMLineTicks);
+    plothistLeft->setGrid(false);
+    plothistBottom->synchronizeXToMaster(plothist);
+    plothistBottom->setAbsoluteY(0,1);
+    plothistBottom->getYAxis()->setInverted(true);
+    plothistBottom->getXAxis()->setShowZeroAxis(false);
+    plothistBottom->getYAxis()->setShowZeroAxis(false);
+    plothistBottom->getXAxis()->setDrawMode1(JKQTPCADMLine);
+    plothistBottom->getXAxis()->setDrawMode2(JKQTPCADMLineTicks);
+    plothistBottom->setGrid(false);
+    plothistBottom->setMousePositionShown(false);
 
-    // 2. now we create data for the charts (taken from https://commons.wikimedia.org/wiki/File:Energiemix_Deutschland.svg)
-    const int NX=100; // image dimension in x-direction [pixels]
-    const int NY=100; // image dimension in x-direction [pixels]
-    const double dx=1e-2; // size of a pixel in x-direction [micrometers]
-    const double dy=1e-2; // size of a pixel in x-direction [micrometers]
-    const double w=static_cast<double>(NX)*dx;
-    const double h=static_cast<double>(NY)*dy;
-    double airydisk[NX*NY]; // row-major image
 
-    // 2.1 Parameters for airy disk plot (see https://en.wikipedia.org/wiki/Airy_disk)
-    double NA=1.1; // numerical aperture of lens
-    double wavelength=488e-3; // wavelength of the light [micrometers]
+//    JKQTPlotter* plotkde=new JKQTPlotter(datastore1, &mainWidget);
+//    plotkde->getPlotter()->setPlotLabel("Kernel Density Estimate");
+//    lay->addWidget(plotkde,0,2);
+//    JKQTPlotter* plotkdeRight=new JKQTPlotter(datastore1, &mainWidget);
+//    lay->addWidget(plotkdeRight,0,3);
+//    JKQTPlotter* plotkdeBottom=new JKQTPlotter(datastore1, &mainWidget);
+//    lay->addWidget(plotkdeBottom,1,2);
+//    plotkdeRight->synchronizeYToMaster(plotkde);
+//    plotkdeRight->setAbsoluteX(0,1);
+//    plotkdeRight->getXAxis()->setShowZeroAxis(false);
+//    plotkdeRight->getYAxis()->setShowZeroAxis(false);
+//    plotkdeRight->getYAxis()->setDrawMode1(JKQTPCADMLine);
+//    plotkdeRight->getYAxis()->setDrawMode2(JKQTPCADMLineTicks);
+//    plotkdeRight->setGrid(false);
+//    plotkdeBottom->synchronizeXToMaster(plotkde);
+//    plotkdeBottom->setAbsoluteY(0,1);
+//    plotkdeBottom->getYAxis()->setInverted(true);
+//    plotkdeBottom->getXAxis()->setShowZeroAxis(false);
+//    plotkdeBottom->getYAxis()->setShowZeroAxis(false);
+//    plotkdeBottom->getXAxis()->setDrawMode1(JKQTPCADMLine);
+//    plotkdeBottom->getXAxis()->setDrawMode2(JKQTPCADMLineTicks);
+//    plotkdeBottom->setGrid(false);
+//    plotkdeBottom->setMousePositionShown(false);
 
-    // 2.2 calculate image of airy disk in a row-major array
-    double x, y=-h/2.0;
-    for (int iy=0; iy<NY; iy++ ) {
-        x=-w/2.0;
-        for (int ix=0; ix<NX; ix++ ) {
-            const double r=sqrt(x*x+y*y);
-            const double v=2.0*M_PI*NA*r/wavelength;
-            airydisk[iy*NX+ix] = pow(2.0*j1(v)/v, 2);
-            x+=dx;
+    lay->setColumnStretch(0,1);
+    lay->setColumnStretch(1,3);
+    lay->setColumnStretch(2,3);
+    lay->setColumnStretch(3,1);
+    lay->setRowStretch(0,3);
+    lay->setRowStretch(1,1);
+
+
+    // 2.1. Now we create two vectors with random values
+    //    randomdatacolx: random x-positions, drawn from one of two gaussian distributions
+    //    randomdatacoly: random y-positions, drawn from one of two gaussian distributions
+    //    randomdatacoldist: indicates, which if the two sets of gaussian distributions was chosen for each datapoint
+    size_t randomdatacolx_small=datastore1->addColumn("random data, x");
+    size_t randomdatacoly_small=datastore1->addColumn("random data, y");
+    size_t randomdatacoldist_small=datastore1->addColumn("random data, distribution/class");
+    size_t randomdatacolx=datastore1->addColumn("random data, x");
+    size_t randomdatacoly=datastore1->addColumn("random data, y");
+    size_t randomdatacoldist=datastore1->addColumn("random data, distribution/class");
+    // random number generators:
+    std::random_device rd;
+    std::mt19937 gen{rd()};
+    gen.seed(12345);
+    std::uniform_int_distribution<> ddecide(0,2);
+    std::normal_distribution<> d1x{5,3};
+    std::normal_distribution<> d1y{5,1};
+    std::normal_distribution<> d2x{10,2};
+    std::normal_distribution<> d2y{10,5};
+    for (size_t i=0; i<500; i++) {
+        double rx=0,ry=0;
+        const int decide=ddecide(gen);
+        if (decide==0) {
+            rx=d1x(gen);
+            ry=d1y(gen);
+        } else {
+            rx=d2x(gen);
+            ry=d2y(gen);
         }
-        y+=dy;
+        if (i<150) {
+            datastore1->appendToColumn(randomdatacolx_small, rx);
+            datastore1->appendToColumn(randomdatacoly_small, ry);
+            datastore1->appendToColumn(randomdatacoldist_small, std::min(1,decide));
+        }
+        datastore1->appendToColumn(randomdatacolx, rx);
+        datastore1->appendToColumn(randomdatacoly, ry);
+        datastore1->appendToColumn(randomdatacoldist, std::min(1,decide));
     }
 
+    // 2.2. To visualize the data, a simple JKQTPPeakStreamGraph is used:
+    JKQTPXYParametrizedScatterGraph* gDataHist;
+    plothist->addGraph(gDataHist=new JKQTPXYParametrizedScatterGraph(plothist));
+    gDataHist->setXYColumns(randomdatacolx,randomdatacoly);
+    gDataHist->setSymbolColumn(randomdatacoldist);
+    QMap<double, JKQTPGraphSymbols> mapped;
+    mapped[0]=JKQTPGraphSymbols::JKQTPCross;
+    mapped[1]=JKQTPGraphSymbols::JKQTPPlus;
+    gDataHist->setMappedSymbolColumnFunctor(mapped);
+    gDataHist->setSymbolSize(5);
+    gDataHist->setSymbolColor(QColorWithAlphaF(QColor("red"), 0.7));
+    gDataHist->setDrawLine(false);
+    gDataHist->setTitle(QString("random data, $N="+QString::number(datastore1->getRows(randomdatacoldist))+"$"));
+    JKQTPXYParametrizedScatterGraph* gDataKDE;
+    plotkde->addGraph(gDataKDE=new JKQTPXYParametrizedScatterGraph(plotkde));
+    gDataKDE->setXYColumns(randomdatacolx_small,randomdatacoly_small);
+    gDataKDE->setSymbolColumn(randomdatacoldist_small);
+    gDataKDE->setSymbolSize(3);
+    gDataKDE->setSymbolColor(QColorWithAlphaF(QColor("red"), 0.7));
+    gDataKDE->setMappedSymbolColumnFunctor(mapped);
+    gDataKDE->setDrawLine(false);
+    gDataKDE->setTitle(QString("random data, $N="+QString::number(datastore1->getRows(randomdatacoldist_small))+"$"));
 
-    // 3. make data available to JKQTPlotter by adding it to the internal datastore.
-    //    In this step the contents of C-array airydisk is copied into a column
-    //    of the datastore in row-major order
-    size_t cAiryDisk=ds->addCopiedImageAsColumn(airydisk, NX, NY, "imagedata");
-
-
-    // 4. create a graph (JKQTPColumnMathImage) with the column created above as data
-    //    The data is color-coded with the color-palette JKQTPMathImageMATLAB
-    //    the converted range of data is determined automatically because setAutoImageRange(true)
-    JKQTPColumnMathImage* graph=new JKQTPColumnMathImage(&plot);
-    graph->setTitle("");
-    // image column with the data
-    graph->setImageColumn(cAiryDisk);
-    // set size of the data (the datastore does not contain this info, as it only manages 1D columns of data and this is used to assume a row-major ordering
-    graph->setNx(NX);
-    graph->setNy(NY);
-    // where does the image start in the plot, given in plot-axis-coordinates (bottom-left corner)
-    graph->setX(-w/2.0);
-    graph->setY(-h/2.0);
-    // width and height of the image in plot-axis-coordinates
-    graph->setWidth(w);
-    graph->setHeight(h);
-    // color-map is "MATLAB"
-    graph->setColorPalette(JKQTPMathImageMATLAB);
-    // get coordinate axis of color-bar and set its label
-    graph->getColorBarRightAxis()->setAxisLabel("light intensity [A.U.]");
-    // determine min/max of data automatically and use it to set the range of the color-scale
-    graph->setAutoImageRange(true);
-
-
-
-    // 5. add the graphs to the plot, so it is actually displayed
-    plot.addGraph(graph);
-
-
-    // 6. set axis labels
-    plot.getXAxis()->setAxisLabel("x [{\\mu}m]");
-    plot.getYAxis()->setAxisLabel("y [{\\mu}m]");
+    // 2.3. to visualize the initial distributions, we draw an ellipse indicating the
+    //      variance of the distributions
+    JKQTPGeoEllipse* gEll1Hist;
+    JKQTPGeoEllipse* gEll2Hist;
+    JKQTPGeoEllipse* gEll1KDE;
+    JKQTPGeoEllipse* gEll2KDE;
+    plothist->addGraph(gEll1Hist=new JKQTPGeoEllipse(plothist, d1x.mean(), d1y.mean(),d1x.stddev()*2.0,d1y.stddev()*2.0));
+    plothist->addGraph(gEll2Hist=new JKQTPGeoEllipse(plothist, d2x.mean(), d2y.mean(),d2x.stddev()*2.0,d2y.stddev()*2.0));
+    plotkde->addGraph(gEll1KDE=new JKQTPGeoEllipse(plothist, d1x.mean(), d1y.mean(),d1x.stddev()*2.0,d1y.stddev()*2.0));
+    plotkde->addGraph(gEll2KDE=new JKQTPGeoEllipse(plothist, d2x.mean(), d2y.mean(),d2x.stddev()*2.0,d2y.stddev()*2.0));
 
 
-    // 7. fix axis and plot aspect ratio to 1
-    plot.getPlotter()->setMaintainAspectRatio(true);
-    plot.getPlotter()->setMaintainAxisAspectRatio(true);
+    // 3. Marginal (1D) Statistics of the x-position and y-position deistributions:
+    // 3.1. First we calculate the x/y marginal histograms, as desribed in https://github.com/jkriege2/JKQtPlotter/tree/master/examples/datastore_statistics
+    timer.start();
+    jkqtpstatAddHHistogram1DAutoranged(plothistBottom->getPlotter(),  datastore1->begin(randomdatacolx), datastore1->end(randomdatacolx), 1.0, true);
+    jkqtpstatAddVHistogram1DAutoranged(plothistLeft->getPlotter(),  datastore1->begin(randomdatacoly), datastore1->end(randomdatacoly), 1.0, true);
+    qDebug()<<"histogram, 1D: "<<timer.elapsed()/2.0<<"ms";
+    // 3.2. Also we calculate the x/y marginal kernel density estimates, as desribed in https://github.com/jkriege2/JKQtPlotter/tree/master/examples/datastore_statistics
+    timer.start();
+    double bwx=jkqtpstatEstimateKDEBandwidth(datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small));
+    qDebug()<<bwx;
+    jkqtpstatAddHKDE1DAutoranged(plotkdeBottom->getPlotter(),  datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small), 0.01, &jkqtpstatKernel1DGaussian, bwx);
+    double bwy=jkqtpstatEstimateKDEBandwidth(datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small));
+    qDebug()<<bwy;
+    jkqtpstatAddVKDE1DAutoranged(plotkdeRight->getPlotter(),  datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small), 0.01, &jkqtpstatKernel1DGaussian, bwy);
+    qDebug()<<"KDE+bandwidth, 1D: "<<timer.elapsed()/2.0<<"ms";
 
-    // 8 autoscale the plot so the graph is contained
-    plot.zoomToFit();
+
+    // 4. 2D Histogram
+    double xmin=0, xmax=0;
+    double ymin=0, ymax=0;
+    timer.start();
+    jkqtpstatMinMax(datastore1->begin(randomdatacolx), datastore1->end(randomdatacolx), xmin,xmax);
+    jkqtpstatMinMax(datastore1->begin(randomdatacoly), datastore1->end(randomdatacoly), ymin,ymax);
+    size_t Nx=jkqtp_ceilTo<size_t>((xmax-xmin)/2.0);
+    size_t Ny=jkqtp_ceilTo<size_t>((ymax-ymin)/2.0);
+    size_t histcol=datastore1->addImageColumn(Nx, Ny, "2d histogram");
+    jkqtpstatHistogram2D(datastore1->begin(randomdatacolx), datastore1->end(randomdatacolx), datastore1->begin(randomdatacoly), datastore1->end(randomdatacoly),
+                         datastore1->begin(histcol),
+                         xmin, xmax, ymin, ymax,
+                         Nx, Ny, true);
+    qDebug()<<"histogram, 2D: "<<timer.elapsed()<<"ms";
+    JKQTPColumnMathImage* gHist;
+    plothist->addGraph(gHist=new JKQTPColumnMathImage(plothist));
+    gHist->setImageColumn(static_cast<int>(histcol));
+    gHist->setX(xmin);
+    gHist->setY(ymin);
+    gHist->setWidth(xmax-xmin);
+    gHist->setHeight(ymax-ymin);
+    gHist->setTitle("2D Histogram");
+    qDebug()<<xmin<<xmax<<Nx;
+    qDebug()<<ymin<<ymax<<Ny;
+
+    //   There also exist "adaptors", which execute the complete code above in one call.
+    //   Two flavors exist:
+    //      jkqtpstatAddHistogram2DImage() adds an image plot as shown above
+    //      jkqtpstatAddHistogram2DContour() adds a contour plot
+    //jkqtpstatAddHistogram2DImage(plothist->getPlotter(), datastore1->begin(randomdatacolx), datastore1->end(randomdatacolx), datastore1->begin(randomdatacoly), datastore1->end(randomdatacoly), Nx, Ny, true);
+    //jkqtpstatAddHistogram2DContour(plothist->getPlotter(), datastore1->begin(randomdatacolx), datastore1->end(randomdatacolx), datastore1->begin(randomdatacoly), datastore1->end(randomdatacoly), size_t(50),size_t(50), true);
+
+
+
+    // 5. 2D KDE
+    xmin=0; xmax=0;
+    ymin=0; ymax=0;
+    timer.start();
+    jkqtpstatMinMax(datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small), xmin,xmax);
+    jkqtpstatMinMax(datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small), ymin,ymax);
+    Nx=jkqtp_ceilTo<size_t>((xmax-xmin)/0.1);
+    Ny=jkqtp_ceilTo<size_t>((ymax-ymin)/0.1);
+    bwx=jkqtpstatEstimateKDEBandwidth2D(datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small));
+    qDebug()<<bwx;
+    bwy=jkqtpstatEstimateKDEBandwidth2D(datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small));
+    qDebug()<<bwy;
+    qDebug()<<xmin<<xmax<<Nx;
+    qDebug()<<ymin<<ymax<<Ny;
+    size_t kdecol=datastore1->addImageColumn(Nx, Ny, "2d KDE");
+    jkqtpstatKDE2D(datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small), datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small),
+                   datastore1->begin(kdecol),
+                   xmin, xmax, ymin, ymax, Nx, Ny,
+                   &jkqtpstatKernel2DGaussian, bwx, bwy);
+    qDebug()<<"KDE, 2D: "<<timer.elapsed()<<"ms";
+    JKQTPColumnMathImage* gKDE;
+    plotkde->addGraph(gKDE=new JKQTPColumnMathImage(plotkde));
+    gKDE->setImageColumn(static_cast<int>(kdecol));
+    gKDE->setX(xmin);
+    gKDE->setY(ymin);
+    gKDE->setWidth(xmax-xmin);
+    gKDE->setHeight(ymax-ymin);
+    gKDE->setTitle("2D KDE");
+
+    //   There also exist "adaptors", which execute the complete code above in one call.
+    //   Two flavors exist:
+    //      jkqtpstatAddKDE2DImage() adds an image plot as shown above
+    //      jkqtpstatAddKDE2DContour() adds a contour plot
+    //jkqtpstatAddKDE2DImage(plotkde->getPlotter(), datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small), datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small), Nx, Ny, &jkqtpstatKernel2DGaussian, bwx, bwy);
+    //jkqtpstatAddKDE2DContour(plotkde->getPlotter(), datastore1->begin(randomdatacolx_small), datastore1->end(randomdatacolx_small), datastore1->begin(randomdatacoly_small), datastore1->end(randomdatacoly_small), Nx, Ny, &jkqtpstatKernel2DGaussian, bwx, bwy);
+
+
+
+    // autoscale the plot so the graph is contained
+    plothist->zoomToFit();
+    plothist->setGrid(false);
+    plothist->getXAxis()->setShowZeroAxis(false);
+    plothist->getYAxis()->setShowZeroAxis(false);
+    plothist->getMainKey()->setBackgroundColor(QColorWithAlphaF("white", 0.25), Qt::SolidPattern);
+    plothist->getPlotter()->moveGraphTop(gDataHist);
+    plothist->getPlotter()->moveGraphTop(gEll1Hist);
+    plothist->getPlotter()->moveGraphTop(gEll2Hist);
+    plothistBottom->zoomToFit(false, true);
+    plothistLeft->zoomToFit(true, false);
+    plotkde->zoomToFit();
+    plotkde->setGrid(false);
+    plotkde->getXAxis()->setShowZeroAxis(false);
+    plotkde->getYAxis()->setShowZeroAxis(false);
+    plotkde->getMainKey()->setBackgroundColor(QColorWithAlphaF("white", 0.25), Qt::SolidPattern);
+    plotkde->getPlotter()->moveGraphTop(gDataKDE);
+    plotkde->getPlotter()->moveGraphTop(gEll1KDE);
+    plotkde->getPlotter()->moveGraphTop(gEll2KDE);
+    plotkdeBottom->zoomToFit(false, true);
+    plotkdeRight->zoomToFit(true, false);
 
     // show plotter and make it a decent size
-    plot.show();
-    plot.resize(600,600);
-    plot.setWindowTitle("Test Image");
+    mainWidget.show();
+    mainWidget.resize(1200,600);
 
-    return a.exec();
+    return QApplication::exec();
 }

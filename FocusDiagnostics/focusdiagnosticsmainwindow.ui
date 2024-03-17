@@ -62,7 +62,7 @@
           </font>
          </property>
          <property name="text">
-          <string>SELECT MODE_t</string>
+          <string>SELECT MODE</string>
          </property>
         </widget>
        </item>
@@ -392,10 +392,16 @@
     </item>
     <item row="1" column="0">
      <widget class="QTabWidget" name="tabWidget">
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
       <widget class="QWidget" name="tab_IMAGE">
+       <property name="styleSheet">
+        <string notr="true">background-color:rgb(239, 239, 239)</string>
+       </property>
        <attribute name="title">
         <string>Focus Image</string>
        </attribute>

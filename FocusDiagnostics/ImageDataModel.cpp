@@ -4,10 +4,11 @@ ImageDataModel::ImageDataModel(QObject* parent) :
 QObject(parent),
 gainInDecibels(0),
 exposureTimeInMicroseconds(0),
-focusImage(nullptr),
-focusImagePlot(new JKQTPlotter),
-focusImagePlot_ProjectionX(new JKQTPlotter),
-focusImagePlot_ProjectionY(new JKQTPlotter) {
+focusImage(nullptr) {
+    focusImagePlot = new JKQTPlotter;
+    datastore = focusImagePlot->getDatastore();
+    focusImagePlot_ProjectionX = new JKQTPlotter(datastore);
+    focusImagePlot_ProjectionY = new JKQTPlotter(datastore);
 }
 
 ImageDataModel::~ImageDataModel() = default;
@@ -38,13 +39,11 @@ void ImageDataModel::OnFocusImageFileSelected(const QString &filePath) {
 }
 
 void ImageDataModel::JKQtPlotter_HandleFocusImageFile() {
-    // Getting the datastore from the TASImage pixel data
-    JKQTPDatastore* ds = focusImagePlot->getDatastore();
     auto NX = focusImage->GetWidth();
     auto NY = focusImage->GetHeight();
-    size_t cAiryDisk = ds->addCopiedImageAsColumn(focusImage->GetArgbArray(), NX, NY, "FocusImageDatastore");
+    size_t cAiryDisk = datastore->addCopiedImageAsColumn(focusImage->GetArgbArray(), NX, NY, "FocusImageDatastore");
 
-
+    // Main graph for the 2D-image
     auto graph = new JKQTPColumnMathImage(focusImagePlot);
     graph->setTitle("");
     graph->setImageColumn(cAiryDisk);
@@ -64,34 +63,23 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile() {
     graph->setAutoImageRange(true);
     graph->setColorBarRightVisible(false);
 
+    // add the graph to the main plot
     focusImagePlot->addGraph(graph);
     focusImagePlot->getPlotter()->setMaintainAspectRatio(true);
     focusImagePlot->getPlotter()->setMaintainAxisAspectRatio(true);
     focusImagePlot->zoomToFit();
     focusImagePlot->show();
 
-    double xmin = 0;
-    double xmax = 0;
-    double xmin_positive = 0;
-    double ymin = 0;
-    double ymax = 0;
-    double ymin_positive = 0;
+    // resizing the projection plots
+    double xmin, xmax, xmin_positive, ymin, ymax, ymin_positive;
     graph->getXMinMax(xmin, xmax, xmin_positive);
     graph->getYMinMax(ymin, ymax, ymin_positive);
-
-    focusImagePlot_ProjectionY->useAsInternalDatastore(ds);
     focusImagePlot_ProjectionY->setAbsoluteX(xmin,xmax);
     focusImagePlot_ProjectionY->show();
-
-    focusImagePlot_ProjectionX->useAsInternalDatastore(ds);
-    focusImagePlot_ProjectionX->synchronizeXToMaster(focusImagePlot);
     focusImagePlot_ProjectionX->setAbsoluteY(ymin,ymax);
     focusImagePlot_ProjectionX->show();
 
 //    jkqtpstatAddVHistogram1DAutoranged(focusImagePlot_ProjectionY->getPlotter(),  ds->begin(randomdatacoly), ds->end(randomdatacoly), 1.0, true);
 //    jkqtpstatAddHHistogram1DAutoranged(plothistBottom->getPlotter(),  datastore1->begin(randomdatacolx), datastore1->end(randomdatacolx), 1.0, true);
-
-
-
 }
 

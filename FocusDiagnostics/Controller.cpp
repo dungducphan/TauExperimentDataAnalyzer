@@ -22,8 +22,8 @@ void Controller::Initialize() {
     imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForText(true);
     imageDataModel->GetFocusImagePlot()->setGrid(false);
     imageDataModel->GetFocusImagePlot()->setMousePositionShown(false);
-    imageDataModel->GetFocusImagePlot()->getXAxis()->setDrawMode1(JKQTPCADMLineTicks);
-    imageDataModel->GetFocusImagePlot()->getYAxis()->setDrawMode1(JKQTPCADMLineTicks);
+//    imageDataModel->GetFocusImagePlot()->getXAxis()->setDrawMode1(JKQTPCADMLineTicks);
+//    imageDataModel->GetFocusImagePlot()->getYAxis()->setDrawMode1(JKQTPCADMLineTicks);
 
     imageDataModel->GetFocusImagePlot_ProjectionX()->getPlotter()->setUseAntiAliasingForGraphs(true);
     imageDataModel->GetFocusImagePlot_ProjectionX()->getPlotter()->setUseAntiAliasingForSystem(true);
@@ -31,6 +31,7 @@ void Controller::Initialize() {
     imageDataModel->GetFocusImagePlot_ProjectionX()->setGrid(false);
     imageDataModel->GetFocusImagePlot_ProjectionX()->setMousePositionShown(false);
     imageDataModel->GetFocusImagePlot_ProjectionX()->synchronizeXToMaster(imageDataModel->GetFocusImagePlot());
+    imageDataModel->GetFocusImagePlot_ProjectionX()->getXAxis()->setDrawMode1(JKQTPCADMLineTicks);
     imageDataModel->GetFocusImagePlot_ProjectionX()->getYAxis()->setDrawMode1(JKQTPCADMLineTicks);
     imageDataModel->GetFocusImagePlot_ProjectionX()->getXAxis()->setShowZeroAxis(false);
     imageDataModel->GetFocusImagePlot_ProjectionX()->getYAxis()->setShowZeroAxis(false);
@@ -42,6 +43,7 @@ void Controller::Initialize() {
     imageDataModel->GetFocusImagePlot_ProjectionY()->setMousePositionShown(false);
     imageDataModel->GetFocusImagePlot_ProjectionY()->synchronizeYToMaster(imageDataModel->GetFocusImagePlot());
     imageDataModel->GetFocusImagePlot_ProjectionY()->getXAxis()->setDrawMode1(JKQTPCADMLineTicks);
+    imageDataModel->GetFocusImagePlot_ProjectionY()->getYAxis()->setDrawMode1(JKQTPCADMLineTicks);
     imageDataModel->GetFocusImagePlot_ProjectionY()->getXAxis()->setShowZeroAxis(false);
     imageDataModel->GetFocusImagePlot_ProjectionY()->getYAxis()->setShowZeroAxis(false);
 
@@ -53,10 +55,10 @@ void Controller::Initialize() {
     layout->addWidget(imageDataModel->GetFocusImagePlot(), 0, 1);
     layout->addWidget(imageDataModel->GetFocusImagePlot_ProjectionY(), 0, 0);
     layout->addWidget(imageDataModel->GetFocusImagePlot_ProjectionX(), 1, 1);
-
-    // FIXME: use column and row stretch instead of setting minimum width and height
-    layout->setColumnMinimumWidth(1, 400);
-    layout->setRowMinimumHeight(0, 400);
+    layout->setColumnStretch(0, 2);
+    layout->setColumnStretch(1, 7);
+    layout->setRowStretch(0, 7);
+    layout->setRowStretch(1, 2);
 }
 
 Controller::~Controller() {

@@ -36,6 +36,7 @@ private:
 
     TASImage* focusImage;
     JKQTPlotter* focusImagePlot;
+    JKQTPDatastore* datastore;
     JKQTPlotter* focusImagePlot_ProjectionX;
     JKQTPlotter* focusImagePlot_ProjectionY;
 };
