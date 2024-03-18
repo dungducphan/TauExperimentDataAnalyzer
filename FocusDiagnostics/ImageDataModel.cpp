@@ -12,12 +12,17 @@ pixelDataFromImage(nullptr),
 NPixelX(0),
 NPixelY(0),
 thresholdPixelValue(0),
-cameraSensorWidthInMillimeters(7.070),
-cameraSensorHeightInMillimeters(5.300),
+cameraSensorWidthInMillimeters(0.299472),
+cameraSensorHeightInMillimeters(0.224604),
 centroidX(0),
 centroidY(0),
 centroidNX(0),
-centroidNY(0) {
+centroidNY(0),
+centroidXFWHMInMicrometers(0),
+centroidYFWHMInMicrometers(0),
+totalPixelValueOfImage(0),
+beamEnergyInMilliJoules(0),
+pulseDurationInFemtoSeconds(0) {
 }
 
 ImageDataModel::~ImageDataModel() = default;
@@ -39,7 +44,13 @@ void ImageDataModel::OnModeChanged(int index) {
 }
 
 void ImageDataModel::OnBeamEnergyChanged(int beamEnergy) {
+    beamEnergyInMilliJoules = beamEnergy;
+    JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential();
+}
 
+void ImageDataModel::OnPulseDurationChanged(int pulseDurations) {
+    pulseDurationInFemtoSeconds = pulseDurations;
+    JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential();
 }
 
 void ImageDataModel::OnFocusImageFileSelected(const QString &filePath) {
@@ -57,6 +68,7 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage() {
     auto pixelValueHistogram = new TH1D("PixelValueHistogram", "Pixel Value Histogram", 256, -0.5, 255.5);
     TIFFGetField(focusImage, TIFFTAG_IMAGEWIDTH, &NPixelX);
     TIFFGetField(focusImage, TIFFTAG_IMAGELENGTH, &NPixelY);
+    std::cout << "Image size: " << NPixelX << " x " << NPixelY << std::endl;
     pixelDataFromImage = (uint32_t *) _TIFFmalloc(NPixelX * NPixelY * sizeof(uint32_t));
     if (pixelDataFromImage != nullptr) {
         if (TIFFReadRGBAImage(focusImage, NPixelX, NPixelY, pixelDataFromImage, 0)) {
@@ -91,8 +103,10 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage() {
     }
 
     // Background subtraction
+    totalPixelValueOfImage = 0;
     for (unsigned int i = 0; i < NPixelX * NPixelY; i++) {
         pixelDataFromImage[i] -= MinBin;
+        totalPixelValueOfImage += pixelDataFromImage[i];
     }
     MaxBin -= MinBin;
     MinBin = 0;
@@ -146,7 +160,7 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotImage() {
 }
 
 void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
-    // Compute projection X data
+    // Compute projection X-Y data
     double xmin, xmax, xmin_positive, ymin, ymax, ymin_positive;
     focusImagePlot->getGraph(0)->getXMinMax(xmin, xmax, xmin_positive);
     focusImagePlot->getGraph(0)->getYMinMax(ymin, ymax, ymin_positive);
@@ -170,6 +184,41 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
             py_y_data[row] = ymin + ((double) row) * stepSize_y;
         }
     }
+
+    // Prep Gaussian Fit to find the FWHM of the centroid
+    auto hPx = new TH1D("hPx", "Projection X", NPixelX, xmin, xmax);
+    auto hPy = new TH1D("hPy", "Projection Y", NPixelY, ymin, ymax);
+    for (int i = 0; i < NPixelX; i++) {
+        hPx->SetBinContent(hPx->FindBin(px_x_data[i]), px_y_data[i]);
+    }
+    for (int i = 0; i < NPixelY; i++) {
+        hPy->SetBinContent(hPy->FindBin(py_y_data[i]), py_x_data[i]);
+    }
+
+    // Fit the projection X
+    auto f1 = new TF1("f1", "gaus", xmin, xmax);
+    f1->SetParameters(1, centroidX, 0.1);
+    auto cx = new TCanvas("cx", "cx", 800, 800);
+    cx->cd();
+    hPx->Draw();
+    hPx->Fit("f1", "RQ");
+    cx->SaveAs("hPx.png");
+    centroidXFWHMInMicrometers = f1->GetParameter(2) * 2355;
+
+    // Fit the projection Y
+    auto f2 = new TF1("f2", "gaus", ymin, ymax);
+    f2->SetParameters(1, centroidY, 0.1);
+    auto cy = new TCanvas("cy", "cy", 800, 800);
+    cy->cd();
+    hPy->Draw();
+    hPy->Fit("f2", "RQ");
+    cy->SaveAs("hPy.png");
+    centroidYFWHMInMicrometers = f2->GetParameter(2) * 2355;
+
+    // Emit the FWHM of the centroid
+    emit BeamFWHMCalculated(centroidXFWHMInMicrometers, centroidYFWHMInMicrometers);
+
+    // Plot the projections
     const auto FocusImagePX_DataStore = focusImagePlot_ProjectionX->getDatastore();
     size_t focusImagePX_Y_Data = FocusImagePX_DataStore->addColumn(px_y_data, NPixelX, "DS_FocusImage_PX_Y");
     size_t focusImagePX_X_Data = FocusImagePX_DataStore->addColumn(px_x_data, NPixelX, "DS_FocusImage_PX_X");
@@ -196,6 +245,19 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
     focusImagePlot->zoom(ymin, ymax, ymin, ymax);
 }
 
+void ImageDataModel::JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential() const {
+    if (totalPixelValueOfImage == 0) return;
+
+    const double pixelToEnergyConversionFactor = beamEnergyInMilliJoules / totalPixelValueOfImage;
+    const double beamCentralArea = TMath::Pi() * centroidXFWHMInMicrometers * centroidYFWHMInMicrometers / 4.0;
+
+    // FIXME:
+    // Calculate the energy inside the Beam Central Area (ellipse of centroidXFWHMInMicrometers and centroidYFWHMInMicrometers)
+    // Need to calculate this value outside of this function because this calculation is costly,
+    // and it would be rerun every time the beam energy or pulse duration is changed
+    // even though the beam energy and pulse duration do not affect the energy inside the beam central area.
+}
+
 void ImageDataModel::JKQtPlotter_HandleFocusImageFile(const QString &filePath) {
     focusImage = TIFFOpen(filePath.toStdString().c_str(), "r");
     if (focusImage) {
@@ -203,7 +265,11 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile(const QString &filePath) {
         JKQtPlotter_HandleFocusImageFile_GetCentroidPosition();
         JKQtPlotter_HandleFocusImageFile_PlotImage();
         JKQtPlotter_HandleFocusImageFile_PlotProjections();
+        JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential();
+
+        // Reset the pixel data
         _TIFFfree(pixelDataFromImage);
+        totalPixelValueOfImage = 0;
     }
 }
 

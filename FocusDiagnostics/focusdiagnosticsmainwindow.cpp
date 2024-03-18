@@ -43,10 +43,18 @@ void FocusDiagnosticsMainWindow::OnModeChanged(int index) const {
     }
 }
 
-void FocusDiagnosticsMainWindow::OnBeamEnergyChanged(double beamEnergy) {
+void FocusDiagnosticsMainWindow::OnBeamEnergyChanged(int beamEnergy) {
+}
 
+void FocusDiagnosticsMainWindow::OnPulseDurationChanged(int pulseDuration) {
 }
 
 void FocusDiagnosticsMainWindow::OnFocusImageFileSelected(const QString &filePath) const {
     ui->lineedit_FOCUS_IMAGE_FILENAME->setText(filePath);
 }
+
+void FocusDiagnosticsMainWindow::OnBeamFWHMCalculated(double FWHMX, double FWHMY) const {
+    ui->label_BEAM_FWHM_X->setText(QString::number(FWHMX, 'd', 1));
+    ui->label_BEAM_FWHM_Y->setText(QString::number(FWHMY, 'd', 1));
+}
+

@@ -18,8 +18,10 @@ public slots:
     void OnExposureTimeChanged(int exposureTime) const;
     void OnAcquireButtonClicked();
     void OnModeChanged(int index) const;
-    void OnBeamEnergyChanged(double beamEnergy);
+    void OnBeamEnergyChanged(int beamEnergy);
+    void OnPulseDurationChanged(int pulseDuration);
     void OnFocusImageFileSelected(const QString& filePath) const;
+    void OnBeamFWHMCalculated(double FWHMX, double FWHMY) const;
 
 public:
     Ui::FocusDiagnosticsMainWindow *ui;

@@ -6,7 +6,10 @@ Controller::Controller() :
         isAcquiring(false),
         gainInDecibels(0),
         exposureTimeInMicroseconds(0),
-        beamEnergyInMilliJoules(0) {
+        beamEnergyInMilliJoules(0),
+        pulseDurationInFemtoSeconds(0),
+        beamFWHMX(0),
+        beamFWHMY(0) {
     view = new FocusDiagnosticsMainWindow();
     imageDataModel = new ImageDataModel(this);
     Initialize();
@@ -57,6 +60,14 @@ void Controller::Initialize() {
     layout->setColumnStretch(1, 7);
     layout->setRowStretch(0, 7);
     layout->setRowStretch(1, 2);
+
+    // Beam Energy
+    beamEnergyInMilliJoules = view->ui->spinbox_BEAM_ENERGY->value();
+    imageDataModel->SetBeamEnergy(beamEnergyInMilliJoules);
+
+    // Pulse Duration
+    pulseDurationInFemtoSeconds = view->ui->spinbox_PULSE_DURATION->value();
+    imageDataModel->SetPulseDuration(pulseDurationInFemtoSeconds);
 }
 
 Controller::~Controller() {
@@ -86,9 +97,14 @@ void Controller::ConnectSignalsAndSlots() {
     connect(this, &Controller::ExposureTimeChanged, imageDataModel, &ImageDataModel::OnExposureTimeChanged);
 
     // BEAM ENERGY
-    connect(view->ui->spinbox_BEAM_ENERGY, &QDoubleSpinBox::editingFinished, this, &Controller::OnBeamEnergyChanged);
+    connect(view->ui->spinbox_BEAM_ENERGY, &QSpinBox::editingFinished, this, &Controller::OnBeamEnergyChanged);
     connect(this, &Controller::BeamEnergyChanged, view, &FocusDiagnosticsMainWindow::OnBeamEnergyChanged);
     connect(this, &Controller::BeamEnergyChanged, imageDataModel, &ImageDataModel::OnBeamEnergyChanged);
+
+    // PULSE DURATION
+    connect(view->ui->spinbox_PULSE_DURATION, &QSpinBox::editingFinished, this, &Controller::OnPulseDurationChanged);
+    connect(this, &Controller::PulseDurationChanged, view, &FocusDiagnosticsMainWindow::OnPulseDurationChanged);
+    connect(this, &Controller::PulseDurationChanged, imageDataModel, &ImageDataModel::OnPulseDurationChanged);
 
     // DISPLAY MODE
     connect(view->ui->combobox_MODE, &QComboBox::currentIndexChanged, this, &Controller::OnModeChanged);
@@ -99,6 +115,10 @@ void Controller::ConnectSignalsAndSlots() {
     connect(view->ui->button_FOCUS_IMAGE_FILE_SELECT, &QPushButton::clicked, this, &Controller::OnFocusImageFileSelectButtonClicked);
     connect(this, &Controller::FocusImageFileSelected, imageDataModel, &ImageDataModel::OnFocusImageFileSelected);
     connect(this, &Controller::FocusImageFileSelected, view, &FocusDiagnosticsMainWindow::OnFocusImageFileSelected);
+
+    // BEAM FWHM CALCULATED
+    connect(imageDataModel, &ImageDataModel::BeamFWHMCalculated, this, &Controller::OnBeamFWHMCalculated);
+    connect(this, &Controller::BeamFWHMCalculated, view, &FocusDiagnosticsMainWindow::OnBeamFWHMCalculated);
 }
 
 void Controller::OnGainChangedFromSlider(int gain) {
@@ -126,6 +146,11 @@ void Controller::OnBeamEnergyChanged() {
     emit BeamEnergyChanged(beamEnergyInMilliJoules);
 }
 
+void Controller::OnPulseDurationChanged() {
+    pulseDurationInFemtoSeconds = view->ui->spinbox_PULSE_DURATION->value();
+    emit PulseDurationChanged(pulseDurationInFemtoSeconds);
+}
+
 void Controller::OnModeChanged(int index) {
     displayMode = index;
     emit ModeChanged(displayMode);
@@ -139,4 +164,10 @@ void Controller::OnAcquireButtonClicked() {
 void Controller::OnFocusImageFileSelectButtonClicked() {
     auto filename = QFileDialog::getOpenFileName(view, "Select Focus Image", QDir::homePath(), "Image Files (*.tiff *.tif)");
     emit FocusImageFileSelected(filename);
+}
+
+void Controller::OnBeamFWHMCalculated(double FWHMX, double FWHMY) {
+    beamFWHMX = FWHMX;
+    beamFWHMY = FWHMY;
+    emit BeamFWHMCalculated(beamFWHMX, beamFWHMY);
 }

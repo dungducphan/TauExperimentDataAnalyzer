@@ -29,13 +29,20 @@ public:
     [[nodiscard]] JKQTPlotter* GetFocusImagePlot_ProjectionX() const { return focusImagePlot_ProjectionX; }
     [[nodiscard]] JKQTPlotter* GetFocusImagePlot_ProjectionY() const { return focusImagePlot_ProjectionY; }
 
+    void SetBeamEnergy(double energy) { beamEnergyInMilliJoules = energy; }
+    void SetPulseDuration(double duration) { pulseDurationInFemtoSeconds = duration; }
+
 public slots:
     void OnGainChanged(int gain);
     void OnExposureTimeChanged(int exposureTime);
     void OnAcquireButtonClicked();
     void OnModeChanged(int index);
     void OnBeamEnergyChanged(int beamEnergy);
+    void OnPulseDurationChanged(int pulseDuration);
     void OnFocusImageFileSelected(const QString& filePath);
+
+signals:
+    void BeamFWHMCalculated(double FWHMX, double FWHMY) const;
 
 private:
     int gainInDecibels;
@@ -46,6 +53,11 @@ private:
     void JKQtPlotter_HandleFocusImageFile_GetCentroidPosition();
     void JKQtPlotter_HandleFocusImageFile_PlotImage();
     void JKQtPlotter_HandleFocusImageFile_PlotProjections();
+    void JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential() const;
+
+    double beamEnergyInMilliJoules;
+    double totalPixelValueOfImage;
+    double pulseDurationInFemtoSeconds;
 
     TIFF* focusImage;
     uint32_t* pixelDataFromImage;
@@ -59,6 +71,8 @@ private:
     int centroidNY; // centroid position in pixels
     double centroidX; // centroid position in millimeters
     double centroidY; // centroid position in millimeters
+    double centroidXFWHMInMicrometers;
+    double centroidYFWHMInMicrometers;
     JKQTPlotter* focusImagePlot_ProjectionX;
     JKQTPlotter* focusImagePlot_ProjectionY;
 };

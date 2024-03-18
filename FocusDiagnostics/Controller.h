@@ -34,6 +34,8 @@ public slots:
     void OnAcquireButtonClicked();
     void OnModeChanged(int index);
     void OnBeamEnergyChanged();
+    void OnPulseDurationChanged();
+    void OnBeamFWHMCalculated(double FWHMX, double FWHMY);
 
 signals:
     void GainChanged(int gain) const;
@@ -41,7 +43,9 @@ signals:
     void AcquireButtonClicked() const;
     void ModeChanged(int index) const;
     void BeamEnergyChanged(int beamEnergy) const;
+    void PulseDurationChanged(int pulseDuration) const;
     void FocusImageFileSelected(const QString& filePath) const;
+    void BeamFWHMCalculated(double FWHMX, double FWHMY) const;
 
 private:
     FocusDiagnosticsMainWindow* view;
@@ -54,4 +58,8 @@ private:
     int gainInDecibels;
     int exposureTimeInMicroseconds;
     int beamEnergyInMilliJoules;
+    int pulseDurationInFemtoSeconds;
+
+    double beamFWHMX;
+    double beamFWHMY;
 };
