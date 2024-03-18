@@ -22,6 +22,7 @@ public slots:
     void OnPulseDurationChanged(int pulseDuration);
     void OnFocusImageFileSelected(const QString& filePath) const;
     void OnBeamFWHMCalculated(double FWHMX, double FWHMY) const;
+    void OnNormalizedVectorPotentialCalculated(double A0) const;
 
 public:
     Ui::FocusDiagnosticsMainWindow *ui;

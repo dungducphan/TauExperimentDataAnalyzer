@@ -9,7 +9,8 @@ Controller::Controller() :
         beamEnergyInMilliJoules(0),
         pulseDurationInFemtoSeconds(0),
         beamFWHMX(0),
-        beamFWHMY(0) {
+        beamFWHMY(0),
+        normalizedVectorPotential(0) {
     view = new FocusDiagnosticsMainWindow();
     imageDataModel = new ImageDataModel(this);
     Initialize();
@@ -119,6 +120,10 @@ void Controller::ConnectSignalsAndSlots() {
     // BEAM FWHM CALCULATED
     connect(imageDataModel, &ImageDataModel::BeamFWHMCalculated, this, &Controller::OnBeamFWHMCalculated);
     connect(this, &Controller::BeamFWHMCalculated, view, &FocusDiagnosticsMainWindow::OnBeamFWHMCalculated);
+
+    // NORMALIZED VECTOR POTENTIAL CALCULATED
+    connect(imageDataModel, &ImageDataModel::NormalizedVectorPotentialCalculated, this, &Controller::OnNormalizedVectorPotentialCalculated);
+    connect(this, &Controller::NormalizedVectorPotentialCalculated, view, &FocusDiagnosticsMainWindow::OnNormalizedVectorPotentialCalculated);
 }
 
 void Controller::OnGainChangedFromSlider(int gain) {
@@ -170,4 +175,9 @@ void Controller::OnBeamFWHMCalculated(double FWHMX, double FWHMY) {
     beamFWHMX = FWHMX;
     beamFWHMY = FWHMY;
     emit BeamFWHMCalculated(beamFWHMX, beamFWHMY);
+}
+
+void Controller::OnNormalizedVectorPotentialCalculated(double A0) {
+    normalizedVectorPotential = A0;
+    emit NormalizedVectorPotentialCalculated(normalizedVectorPotential);
 }

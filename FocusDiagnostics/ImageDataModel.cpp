@@ -20,9 +20,10 @@ centroidNX(0),
 centroidNY(0),
 centroidXFWHMInMicrometers(0),
 centroidYFWHMInMicrometers(0),
-totalPixelValueOfImage(0),
 beamEnergyInMilliJoules(0),
-pulseDurationInFemtoSeconds(0) {
+pulseDurationInFemtoSeconds(0),
+beamSpotEnergyFraction(0),
+normalizedVectorPotential(0) {
 }
 
 ImageDataModel::~ImageDataModel() = default;
@@ -58,6 +59,7 @@ void ImageDataModel::OnFocusImageFileSelected(const QString &filePath) {
     focusImagePlot->clearGraphs();
     focusImagePlot_ProjectionX->clearGraphs();
     focusImagePlot_ProjectionY->clearGraphs();
+    beamSpotEnergyFraction = 0;
 
     // Handle new image file
     JKQtPlotter_HandleFocusImageFile(filePath);
@@ -103,14 +105,27 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage() {
     }
 
     // Background subtraction
-    totalPixelValueOfImage = 0;
+    double totalPixelValueOfImage = 0;
     for (unsigned int i = 0; i < NPixelX * NPixelY; i++) {
         pixelDataFromImage[i] -= MinBin;
         totalPixelValueOfImage += pixelDataFromImage[i];
     }
+    for (unsigned int i = 0; i < pixelValueHistogram->GetSize(); i++) {
+        pixelValueHistogram->SetBinContent(i, pixelValueHistogram->GetBinContent(i) - MinBin);
+    }
     MaxBin -= MinBin;
     MinBin = 0;
     thresholdPixelValue = (int) (0.95 * (MaxBin - MinBin) + MinBin);
+
+    // Calculate beam spot energy fraction
+    double totalPixelValueOfBeamSpot = 0;
+    for (unsigned int i = 0; i < pixelValueHistogram->GetSize(); i++) {
+        if (pixelValueHistogram->GetBinCenter(i) >= MaxBin / 2.) {
+            totalPixelValueOfBeamSpot += pixelValueHistogram->GetBinContent(i) * pixelValueHistogram->GetBinCenter(i);
+        }
+    }
+
+    beamSpotEnergyFraction = totalPixelValueOfBeamSpot / totalPixelValueOfImage;
 };
 
 void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetCentroidPosition() {
@@ -245,17 +260,16 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
     focusImagePlot->zoom(ymin, ymax, ymin, ymax);
 }
 
-void ImageDataModel::JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential() const {
-    if (totalPixelValueOfImage == 0) return;
+void ImageDataModel::JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential() {
+    // Look at Equation 7 in https://cds.cern.ch/record/2203636/files/1418884_207-230.pdf
+    const double beamSpotEnergyInJoules = beamEnergyInMilliJoules * beamSpotEnergyFraction * 1e-3;
+    std::cout << "Beam Spot Energy: " << beamSpotEnergyInJoules << " J" << std::endl;
+    const double beamCentralAreaInMicrometerSquared = TMath::Pi() * centroidXFWHMInMicrometers * centroidYFWHMInMicrometers / 4.0;
+    const double intensityInWattsPerCentimeterSquared = beamSpotEnergyInJoules / (beamCentralAreaInMicrometerSquared * pulseDurationInFemtoSeconds * 1e-15 * 1e-8);
+    const double wavelengthInMicrometers = 0.8;
+    normalizedVectorPotential = 0.855E-9 * TMath::Sqrt(intensityInWattsPerCentimeterSquared) * wavelengthInMicrometers;
 
-    const double pixelToEnergyConversionFactor = beamEnergyInMilliJoules / totalPixelValueOfImage;
-    const double beamCentralArea = TMath::Pi() * centroidXFWHMInMicrometers * centroidYFWHMInMicrometers / 4.0;
-
-    // FIXME:
-    // Calculate the energy inside the Beam Central Area (ellipse of centroidXFWHMInMicrometers and centroidYFWHMInMicrometers)
-    // Need to calculate this value outside of this function because this calculation is costly,
-    // and it would be rerun every time the beam energy or pulse duration is changed
-    // even though the beam energy and pulse duration do not affect the energy inside the beam central area.
+    emit NormalizedVectorPotentialCalculated(normalizedVectorPotential);
 }
 
 void ImageDataModel::JKQtPlotter_HandleFocusImageFile(const QString &filePath) {
@@ -267,9 +281,7 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile(const QString &filePath) {
         JKQtPlotter_HandleFocusImageFile_PlotProjections();
         JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential();
 
-        // Reset the pixel data
         _TIFFfree(pixelDataFromImage);
-        totalPixelValueOfImage = 0;
     }
 }
 

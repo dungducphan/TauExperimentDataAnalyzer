@@ -36,6 +36,7 @@ public slots:
     void OnBeamEnergyChanged();
     void OnPulseDurationChanged();
     void OnBeamFWHMCalculated(double FWHMX, double FWHMY);
+    void OnNormalizedVectorPotentialCalculated(double A0);
 
 signals:
     void GainChanged(int gain) const;
@@ -46,6 +47,7 @@ signals:
     void PulseDurationChanged(int pulseDuration) const;
     void FocusImageFileSelected(const QString& filePath) const;
     void BeamFWHMCalculated(double FWHMX, double FWHMY) const;
+    void NormalizedVectorPotentialCalculated(double A0) const;
 
 private:
     FocusDiagnosticsMainWindow* view;
@@ -62,4 +64,5 @@ private:
 
     double beamFWHMX;
     double beamFWHMY;
+    double normalizedVectorPotential;
 };

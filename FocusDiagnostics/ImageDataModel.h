@@ -43,6 +43,7 @@ public slots:
 
 signals:
     void BeamFWHMCalculated(double FWHMX, double FWHMY) const;
+    void NormalizedVectorPotentialCalculated(double A0) const;
 
 private:
     int gainInDecibels;
@@ -53,11 +54,12 @@ private:
     void JKQtPlotter_HandleFocusImageFile_GetCentroidPosition();
     void JKQtPlotter_HandleFocusImageFile_PlotImage();
     void JKQtPlotter_HandleFocusImageFile_PlotProjections();
-    void JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential() const;
+    void JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential();
 
     double beamEnergyInMilliJoules;
-    double totalPixelValueOfImage;
+    double beamSpotEnergyFraction;
     double pulseDurationInFemtoSeconds;
+    double normalizedVectorPotential;
 
     TIFF* focusImage;
     uint32_t* pixelDataFromImage;

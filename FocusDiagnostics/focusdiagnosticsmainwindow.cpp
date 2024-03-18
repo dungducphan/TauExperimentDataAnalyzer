@@ -58,3 +58,7 @@ void FocusDiagnosticsMainWindow::OnBeamFWHMCalculated(double FWHMX, double FWHMY
     ui->label_BEAM_FWHM_Y->setText(QString::number(FWHMY, 'd', 1));
 }
 
+void FocusDiagnosticsMainWindow::OnNormalizedVectorPotentialCalculated(double A0) const {
+    ui->label_A0->setText(QString::number(A0, 'd', 2));
+}
+
