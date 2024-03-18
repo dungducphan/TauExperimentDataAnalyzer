@@ -61,6 +61,8 @@ private:
     double pulseDurationInFemtoSeconds;
     double normalizedVectorPotential;
 
+    double maxPixelValue;
+
     TIFF* focusImage;
     uint32_t* pixelDataFromImage;
     uint32_t NPixelX;

@@ -23,7 +23,8 @@ ImageDataModel::ImageDataModel(QObject* parent) :
         beamEnergyInMilliJoules(0),
         pulseDurationInFemtoSeconds(0),
         beamSpotEnergyFraction(0),
-        normalizedVectorPotential(0) {
+        normalizedVectorPotential(0),
+        maxPixelValue(0) {
 }
 
 ImageDataModel::~ImageDataModel() = default;
@@ -60,6 +61,7 @@ void ImageDataModel::OnFocusImageFileSelected(const QString &filePath) {
     focusImagePlot_ProjectionX->clearGraphs();
     focusImagePlot_ProjectionY->clearGraphs();
     beamSpotEnergyFraction = 0;
+    maxPixelValue = 0;
 
     // Handle new image file
     JKQtPlotter_HandleFocusImageFile(filePath);
@@ -124,6 +126,7 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage() {
         }
     }
 
+    maxPixelValue = MaxBin;
     beamSpotEnergyFraction = totalPixelValueOfBeamSpot / totalPixelValueOfImage;
     pixelValueHistogram->Delete();
 };
@@ -256,6 +259,10 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
     graph_px->setYColumn(focusImagePX_Y_Data);
     graph_px->setColor(QColor("red"));
     focusImagePlot_ProjectionX->addGraph(graph_px);
+    // Plot the arrow indication of beam spot FWHM
+    auto arrowX = new JKQTPGeoArrow(focusImagePlot_ProjectionX, centroidX-centroidXFWHMInMicrometers/2.,  maxPixelValue/2., centroidX+centroidXFWHMInMicrometers/2., maxPixelValue/2., JKQTPFilledArrow, JKQTPFilledArrow);
+    arrowX->setStyle(QColor("red"), 1);
+    focusImagePlot_ProjectionX->addGraph(arrowX);
     focusImagePlot_ProjectionX->zoomToFit();
     focusImagePlot_ProjectionX->show();
 
@@ -264,6 +271,10 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
     graph_py->setYColumn(focusImagePY_Y_Data);
     graph_py->setColor(QColor("red"));
     focusImagePlot_ProjectionY->addGraph(graph_py);
+    // Plot the arrow indication of beam spot FWHM
+    auto arrowY = new JKQTPGeoArrow(focusImagePlot_ProjectionY, maxPixelValue/2., centroidY-centroidYFWHMInMicrometers/2.,  maxPixelValue/2., centroidY+centroidYFWHMInMicrometers/2., JKQTPFilledArrow, JKQTPFilledArrow);
+    arrowY->setStyle(QColor("red"), 1);
+    focusImagePlot_ProjectionY->addGraph(arrowY);
     focusImagePlot_ProjectionY->zoomToFit();
     focusImagePlot_ProjectionY->show();
 
