@@ -24,6 +24,8 @@ void Controller::Initialize() {
     imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForGraphs(true);
     imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForSystem(true);
     imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForText(true);
+    imageDataModel->GetFocusImagePlot()->getXAxis()->setDrawMode1(JKQTPCADMLineTicks);
+    imageDataModel->GetFocusImagePlot()->getYAxis()->setDrawMode1(JKQTPCADMLineTicks);
     imageDataModel->GetFocusImagePlot()->setGrid(false);
     imageDataModel->GetFocusImagePlot()->setMousePositionShown(false);
 
@@ -33,8 +35,8 @@ void Controller::Initialize() {
     imageDataModel->GetFocusImagePlot_ProjectionX()->setGrid(false);
     imageDataModel->GetFocusImagePlot_ProjectionX()->setMousePositionShown(false);
     imageDataModel->GetFocusImagePlot_ProjectionX()->synchronizeXToMaster(imageDataModel->GetFocusImagePlot());
-    imageDataModel->GetFocusImagePlot_ProjectionX()->getXAxis()->setDrawMode1(JKQTPCADMLineTicks);
-    imageDataModel->GetFocusImagePlot_ProjectionX()->getYAxis()->setDrawMode1(JKQTPCADMLineTicks);
+    imageDataModel->GetFocusImagePlot_ProjectionX()->getXAxis()->setDrawMode1(JKQTPCADMLineTicksTickLabels);
+    //    imageDataModel->GetFocusImagePlot_ProjectionX()->getYAxis()->setDrawMode1(JKQTPCADMLineTicks);
     imageDataModel->GetFocusImagePlot_ProjectionX()->getXAxis()->setShowZeroAxis(false);
     imageDataModel->GetFocusImagePlot_ProjectionX()->getYAxis()->setShowZeroAxis(false);
 
@@ -44,8 +46,8 @@ void Controller::Initialize() {
     imageDataModel->GetFocusImagePlot_ProjectionY()->setGrid(false);
     imageDataModel->GetFocusImagePlot_ProjectionY()->setMousePositionShown(false);
     imageDataModel->GetFocusImagePlot_ProjectionY()->synchronizeYToMaster(imageDataModel->GetFocusImagePlot());
-    imageDataModel->GetFocusImagePlot_ProjectionY()->getXAxis()->setDrawMode1(JKQTPCADMLineTicks);
-    imageDataModel->GetFocusImagePlot_ProjectionY()->getYAxis()->setDrawMode1(JKQTPCADMLineTicks);
+    //    imageDataModel->GetFocusImagePlot_ProjectionY()->getXAxis()->setDrawMode1(JKQTPCADMLineTicks);
+    imageDataModel->GetFocusImagePlot_ProjectionY()->getYAxis()->setDrawMode1(JKQTPCADMLineTicksTickLabels);
     imageDataModel->GetFocusImagePlot_ProjectionY()->getXAxis()->setShowZeroAxis(false);
     imageDataModel->GetFocusImagePlot_ProjectionY()->getYAxis()->setShowZeroAxis(false);
 

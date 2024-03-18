@@ -213,21 +213,21 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
     // Fit the projection X
     auto f1 = new TF1("f1", "gaus", xmin, xmax);
     f1->SetParameters(1, centroidX, 0.1);
-    auto cx = new TCanvas("cx", "cx", 800, 800);
-    cx->cd();
-    hPx->Draw();
+    //    auto cx = new TCanvas("cx", "cx", 800, 800);
+    //    cx->cd();
+    //    hPx->Draw();
     hPx->Fit("f1", "RQ");
-    cx->SaveAs("hPx.png");
+    //    cx->SaveAs("hPx.png");
     centroidXFWHMInMicrometers = f1->GetParameter(2) * 2355;
 
     // Fit the projection Y
     auto f2 = new TF1("f2", "gaus", ymin, ymax);
     f2->SetParameters(1, centroidY, 0.1);
-    auto cy = new TCanvas("cy", "cy", 800, 800);
-    cy->cd();
-    hPy->Draw();
+    //    auto cy = new TCanvas("cy", "cy", 800, 800);
+    //    cy->cd();
+    //    hPy->Draw();
     hPy->Fit("f2", "RQ");
-    cy->SaveAs("hPy.png");
+    //    cy->SaveAs("hPy.png");
     centroidYFWHMInMicrometers = f2->GetParameter(2) * 2355;
 
     // Emit the FWHM of the centroid
@@ -263,7 +263,6 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
 void ImageDataModel::JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential() {
     // Look at Equation 7 in https://cds.cern.ch/record/2203636/files/1418884_207-230.pdf
     const double beamSpotEnergyInJoules = beamEnergyInMilliJoules * beamSpotEnergyFraction * 1e-3;
-    std::cout << "Beam Spot Energy: " << beamSpotEnergyInJoules << " J" << std::endl;
     const double beamCentralAreaInMicrometerSquared = TMath::Pi() * centroidXFWHMInMicrometers * centroidYFWHMInMicrometers / 4.0;
     const double intensityInWattsPerCentimeterSquared = beamSpotEnergyInJoules / (beamCentralAreaInMicrometerSquared * pulseDurationInFemtoSeconds * 1e-15 * 1e-8);
     const double wavelengthInMicrometers = 0.8;
