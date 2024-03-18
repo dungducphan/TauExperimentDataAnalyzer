@@ -66,13 +66,13 @@ private:
     uint32_t NPixelX;
     uint32_t NPixelY;
     int thresholdPixelValue;
-    const double cameraSensorWidthInMillimeters;
-    const double cameraSensorHeightInMillimeters;
+    const double cameraSensorWidthInMicrometers;
+    const double cameraSensorHeightInMicrometers;
     JKQTPlotter* focusImagePlot;
     int centroidNX; // centroid position in pixels
     int centroidNY; // centroid position in pixels
-    double centroidX; // centroid position in millimeters
-    double centroidY; // centroid position in millimeters
+    double centroidX; // centroid position in micrometers
+    double centroidY; // centroid position in micrometers
     double centroidXFWHMInMicrometers;
     double centroidYFWHMInMicrometers;
     JKQTPlotter* focusImagePlot_ProjectionX;

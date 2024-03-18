@@ -1,29 +1,29 @@
 #include "ImageDataModel.h"
 
 ImageDataModel::ImageDataModel(QObject* parent) :
-QObject(parent),
-gainInDecibels(0),
-exposureTimeInMicroseconds(0),
-focusImage(nullptr),
-focusImagePlot(new JKQTPlotter),
-focusImagePlot_ProjectionX(new JKQTPlotter),
-focusImagePlot_ProjectionY(new JKQTPlotter),
-pixelDataFromImage(nullptr),
-NPixelX(0),
-NPixelY(0),
-thresholdPixelValue(0),
-cameraSensorWidthInMillimeters(0.299472),
-cameraSensorHeightInMillimeters(0.224604),
-centroidX(0),
-centroidY(0),
-centroidNX(0),
-centroidNY(0),
-centroidXFWHMInMicrometers(0),
-centroidYFWHMInMicrometers(0),
-beamEnergyInMilliJoules(0),
-pulseDurationInFemtoSeconds(0),
-beamSpotEnergyFraction(0),
-normalizedVectorPotential(0) {
+        QObject(parent),
+        gainInDecibels(0),
+        exposureTimeInMicroseconds(0),
+        focusImage(nullptr),
+        focusImagePlot(new JKQTPlotter),
+        focusImagePlot_ProjectionX(new JKQTPlotter),
+        focusImagePlot_ProjectionY(new JKQTPlotter),
+        pixelDataFromImage(nullptr),
+        NPixelX(0),
+        NPixelY(0),
+        thresholdPixelValue(0),
+        cameraSensorWidthInMicrometers(299.472),
+        cameraSensorHeightInMicrometers(224.604),
+        centroidX(0),
+        centroidY(0),
+        centroidNX(0),
+        centroidNY(0),
+        centroidXFWHMInMicrometers(0),
+        centroidYFWHMInMicrometers(0),
+        beamEnergyInMilliJoules(0),
+        pulseDurationInFemtoSeconds(0),
+        beamSpotEnergyFraction(0),
+        normalizedVectorPotential(0) {
 }
 
 ImageDataModel::~ImageDataModel() = default;
@@ -70,7 +70,6 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage() {
     auto pixelValueHistogram = new TH1D("PixelValueHistogram", "Pixel Value Histogram", 256, -0.5, 255.5);
     TIFFGetField(focusImage, TIFFTAG_IMAGEWIDTH, &NPixelX);
     TIFFGetField(focusImage, TIFFTAG_IMAGELENGTH, &NPixelY);
-    std::cout << "Image size: " << NPixelX << " x " << NPixelY << std::endl;
     pixelDataFromImage = (uint32_t *) _TIFFmalloc(NPixelX * NPixelY * sizeof(uint32_t));
     if (pixelDataFromImage != nullptr) {
         if (TIFFReadRGBAImage(focusImage, NPixelX, NPixelY, pixelDataFromImage, 0)) {
@@ -126,6 +125,7 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage() {
     }
 
     beamSpotEnergyFraction = totalPixelValueOfBeamSpot / totalPixelValueOfImage;
+    pixelValueHistogram->Delete();
 };
 
 void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetCentroidPosition() {
@@ -137,8 +137,9 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetCentroidPosition() {
     }
     centroidNX = TMath::Nint(centroidHist->ProjectionX()->GetMean());
     centroidNY = TMath::Nint(centroidHist->ProjectionY()->GetMean());
-    centroidX = -cameraSensorWidthInMillimeters/2.0 + centroidNX * cameraSensorWidthInMillimeters / NPixelX;
-    centroidY = -cameraSensorHeightInMillimeters/2.0 + centroidNY * cameraSensorHeightInMillimeters / NPixelY;
+    centroidX = -cameraSensorWidthInMicrometers / 2.0 + centroidNX * cameraSensorWidthInMicrometers / NPixelX;
+    centroidY = -cameraSensorHeightInMicrometers / 2.0 + centroidNY * cameraSensorHeightInMicrometers / NPixelY;
+    centroidHist->Delete();
 }
 
 void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotImage() {
@@ -150,10 +151,10 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotImage() {
     graph->setImageColumn(focusImage_Data);
     graph->setNx((int) NPixelX);
     graph->setNy((int) NPixelY);
-    graph->setX(-cameraSensorWidthInMillimeters/2.0);
-    graph->setY(-cameraSensorHeightInMillimeters/2.0);
-    graph->setWidth(cameraSensorWidthInMillimeters);
-    graph->setHeight(cameraSensorHeightInMillimeters);
+    graph->setX(-cameraSensorWidthInMicrometers / 2.0);
+    graph->setY(-cameraSensorHeightInMicrometers / 2.0);
+    graph->setWidth(cameraSensorWidthInMicrometers);
+    graph->setHeight(cameraSensorHeightInMicrometers);
     graph->setColorPalette(JKQTPMathImageMATLAB);
     graph->setAutoImageRange(true);
     graph->setShowColorBar(false);
@@ -165,8 +166,8 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotImage() {
     focusImagePlot->zoomToFit();
 
     // add centroid lines
-    auto lX = new JKQTPGeoLine(focusImagePlot, centroidX,  -cameraSensorHeightInMillimeters/2.0, centroidX, cameraSensorHeightInMillimeters/2.0);
-    auto lY = new JKQTPGeoLine(focusImagePlot, -cameraSensorWidthInMillimeters/2.0,  centroidY, cameraSensorWidthInMillimeters/2.0, centroidY);
+    auto lX = new JKQTPGeoLine(focusImagePlot, centroidX, -cameraSensorHeightInMicrometers / 2.0, centroidX, cameraSensorHeightInMicrometers / 2.0);
+    auto lY = new JKQTPGeoLine(focusImagePlot, -cameraSensorWidthInMicrometers / 2.0, centroidY, cameraSensorWidthInMicrometers / 2.0, centroidY);
     lX->setStyle(QColor("red"), 1);
     lY->setStyle(QColor("red"), 1);
     focusImagePlot->addGraph(lX);
@@ -212,26 +213,35 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
 
     // Fit the projection X
     auto f1 = new TF1("f1", "gaus", xmin, xmax);
-    f1->SetParameters(1, centroidX, 0.1);
+    f1->SetParameters(10, centroidX, 10);
     //    auto cx = new TCanvas("cx", "cx", 800, 800);
     //    cx->cd();
     //    hPx->Draw();
-    hPx->Fit("f1", "RQ");
+    hPx->Fit("f1", "0RQ"); // 0 = do not plot, R = fit range, Q = quiet, do not print results
     //    cx->SaveAs("hPx.png");
-    centroidXFWHMInMicrometers = f1->GetParameter(2) * 2355;
+    centroidXFWHMInMicrometers = f1->GetParameter(2) * 2.355;
 
     // Fit the projection Y
     auto f2 = new TF1("f2", "gaus", ymin, ymax);
-    f2->SetParameters(1, centroidY, 0.1);
+    f2->SetParameters(10, centroidY, 10);
     //    auto cy = new TCanvas("cy", "cy", 800, 800);
     //    cy->cd();
     //    hPy->Draw();
-    hPy->Fit("f2", "RQ");
+    hPy->Fit("f2", "0RQ"); // 0 = do not plot, R = fit range, Q = quiet, do not print results
     //    cy->SaveAs("hPy.png");
-    centroidYFWHMInMicrometers = f2->GetParameter(2) * 2355;
+    centroidYFWHMInMicrometers = f2->GetParameter(2) * 2.355;
 
     // Emit the FWHM of the centroid
+    hPx->Delete();
+    hPy->Delete();
     emit BeamFWHMCalculated(centroidXFWHMInMicrometers, centroidYFWHMInMicrometers);
+
+    // Draw the ellipse that indicates the beam spot (FWHM) area
+    auto beamSpotEllipse = new JKQTPGeoEllipse(focusImagePlot, centroidX, centroidY, centroidXFWHMInMicrometers, centroidYFWHMInMicrometers);
+    focusImagePlot->addGraph(beamSpotEllipse);
+    QColor whiteFill("white");
+    whiteFill.setAlphaF(0.1);
+    beamSpotEllipse->setStyle(QColor("red"), 1, Qt::SolidLine, whiteFill, Qt::SolidPattern);
 
     // Plot the projections
     const auto FocusImagePX_DataStore = focusImagePlot_ProjectionX->getDatastore();
