@@ -76,5 +76,5 @@ find_package(TIFF REQUIRED)
 # Applications
 #----------------------------------------------------------------------------------------------------------------------#
 
-add_subdirectory(CompilingTests)
+add_subdirectory(LaserDiagnostics)
 add_subdirectory(FocusDiagnostics)
