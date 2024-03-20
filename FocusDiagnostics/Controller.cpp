@@ -111,6 +111,8 @@ void Controller::ConnectSignalsAndSlots() {
     connect(view->ui->combobox_MODE, &QComboBox::currentIndexChanged, this, &Controller::OnModeChanged);
     connect(this, &Controller::ModeChanged, view, &FocusDiagnosticsMainWindow::OnModeChanged);
     connect(this, &Controller::ModeChanged, imageDataModel, &ImageDataModel::OnModeChanged);
+    // SEARCHING CAMERAS
+    connect(imageDataModel->GetCameraController(), &ISCameraController::CameraFound, view, &FocusDiagnosticsMainWindow::OnCameraFound);
 
     // FOCUS IMAGE FILE SELECT
     connect(view->ui->button_FOCUS_IMAGE_FILE_SELECT, &QPushButton::clicked, this, &Controller::OnFocusImageFileSelectButtonClicked);

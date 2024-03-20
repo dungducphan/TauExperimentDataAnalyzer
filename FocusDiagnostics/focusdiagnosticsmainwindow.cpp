@@ -62,3 +62,10 @@ void FocusDiagnosticsMainWindow::OnNormalizedVectorPotentialCalculated(double A0
     ui->label_A0->setText(QString::number(A0, 'd', 2));
 }
 
+void FocusDiagnosticsMainWindow::OnCameraFound(const std::vector<std::string>& namesOfAvailableCameras) const {
+    ui->label_CAMERA_LIST->setText("Available Cameras");
+    for (auto& elem : namesOfAvailableCameras) {
+        ui->comboBox_CAMERA_LIST->addItem(QString::fromStdString(elem));
+    }
+}
+

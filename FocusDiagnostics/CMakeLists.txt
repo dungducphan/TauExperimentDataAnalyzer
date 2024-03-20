@@ -1,4 +1,5 @@
 # Target sources and build options
+include_directories(/usr/include/gstreamer-1.0 /usr/include/glib-2.0 /usr/lib/x86_64-linux-gnu/glib-2.0/include)
 
 set(TARGET_SOURCES
         main.cpp
@@ -9,6 +10,8 @@ set(TARGET_SOURCES
         ImageDataModel.cpp
         Controller.h
         Controller.cpp
+        ISCameraController.h
+        ISCameraController.cpp
 )
 
 set(TARGET_NAME FocusDiagnostics)
@@ -26,6 +29,10 @@ set(TARGET_DEPENDENCIES
         ${EPICS7_Com}
         ${EPICS7_CA}
         TIFF::TIFF
+        tcam
+        tcam-property
+        tcamgststatistics
+        tcam-network
 )
 
 qt_add_executable(${TARGET_NAME} MANUAL_FINALIZATION ${TARGET_SOURCES})

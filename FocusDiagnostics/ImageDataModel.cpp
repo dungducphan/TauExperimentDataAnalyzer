@@ -24,7 +24,8 @@ ImageDataModel::ImageDataModel(QObject* parent) :
         pulseDurationInFemtoSeconds(0),
         beamSpotEnergyFraction(0),
         normalizedVectorPotential(0),
-        maxPixelValue(0) {
+        maxPixelValue(0),
+        cameraController(nullptr) {
 }
 
 ImageDataModel::~ImageDataModel() = default;
@@ -42,7 +43,7 @@ void ImageDataModel::OnAcquireButtonClicked() {
 }
 
 void ImageDataModel::OnModeChanged(int index) {
-
+    if (index == 1) cameraController->FindAvailableCameras();
 }
 
 void ImageDataModel::OnBeamEnergyChanged(int beamEnergy) {

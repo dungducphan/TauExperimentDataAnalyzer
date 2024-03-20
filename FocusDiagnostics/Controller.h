@@ -14,6 +14,7 @@
 #include "focusdiagnosticsmainwindow.h"
 #include "FocusDiagnostics_autogen/include/ui_focusdiagnosticsmainwindow.h"
 #include "ImageDataModel.h"
+#include "ISCameraController.h"
 
 class Controller : public QObject {
     Q_OBJECT

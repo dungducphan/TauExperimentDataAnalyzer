@@ -23,6 +23,7 @@ public slots:
     void OnFocusImageFileSelected(const QString& filePath) const;
     void OnBeamFWHMCalculated(double FWHMX, double FWHMY) const;
     void OnNormalizedVectorPotentialCalculated(double A0) const;
+    void OnCameraFound(const std::vector<std::string>& namesOfAvailableCameras) const;
 
 public:
     Ui::FocusDiagnosticsMainWindow *ui;
