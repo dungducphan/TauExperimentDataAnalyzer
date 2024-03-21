@@ -35,6 +35,6 @@ set(TARGET_DEPENDENCIES
         tcam-network
 )
 
-qt_add_executable(${TARGET_NAME} MANUAL_FINALIZATION ${TARGET_SOURCES})
+qt_add_executable(${TARGET_NAME} MANUAL_FINALIZATION ${TARGET_SOURCES} resources.qrc)
 target_link_libraries(${TARGET_NAME} PRIVATE ${TARGET_DEPENDENCIES})
 qt_finalize_executable(${TARGET_NAME})

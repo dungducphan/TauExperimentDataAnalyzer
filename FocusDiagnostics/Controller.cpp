@@ -1,4 +1,4 @@
-#include "Controller.h"
+#include <Controller.h>
 
 Controller::Controller(QObject* parent) :
         QObject(parent),
@@ -13,7 +13,10 @@ Controller::Controller(QObject* parent) :
         normalizedVectorPotential(0),
         cameraController(new ISCameraController(this)),
         isCameraConnected(false),
-        autoCaptureEnabled(false) {
+        autoCaptureEnabled(false),
+        startIcon(new QIcon(":/icons/Resources/Icons/icons8-play-48.png")),
+        stopIcon(new QIcon(":/icons/Resources/Icons/icons8-stop-48.png")),
+        singleIcon(new QIcon(":/icons/Resources/Icons/icons8-keycap-digit-one-48.png")) {
     view = new FocusDiagnosticsMainWindow();
     imageDataModel = new ImageDataModel(this);
     ConnectSignalsAndSlots();
@@ -73,6 +76,9 @@ void Controller::Initialize() {
     // Pulse Duration
     pulseDurationInFemtoSeconds = view->ui->spinbox_PULSE_DURATION->value();
     imageDataModel->SetPulseDuration(pulseDurationInFemtoSeconds);
+
+    // Icons
+    view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE->setIcon(*startIcon);
 }
 
 Controller::~Controller() {
@@ -213,6 +219,8 @@ void Controller::DisableCameraControls() {
     view->ui->spinbox_GAIN->setDisabled(true);
     view->ui->slider_EXPOSURE_TIME->setDisabled(true);
     view->ui->spinbox_EXPOSURE_TIME->setDisabled(true);
+    view->ui->button_FOCUS_IMAGE_CAPTURE->setDisabled(true);
+    view->ui->combobox_MODE->setDisabled(true);
 }
 
 void Controller::EnableCameraControls() {
@@ -222,18 +230,22 @@ void Controller::EnableCameraControls() {
     view->ui->spinbox_GAIN->setDisabled(false);
     view->ui->slider_EXPOSURE_TIME->setDisabled(false);
     view->ui->spinbox_EXPOSURE_TIME->setDisabled(false);
+    view->ui->button_FOCUS_IMAGE_CAPTURE->setDisabled(false);
+    view->ui->combobox_MODE->setDisabled(false);
 }
 
 void Controller::OnAutoAcquisitionButtonClicked() {
     if (!isCameraConnected) return;
 
-    if (view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE->text() == "Auto") {
+    if (!autoCaptureEnabled) {
         autoCaptureEnabled = true;
+        view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE->setIcon(*stopIcon);
         view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE->setText("Stop");
         DisableCameraControls();
         emit FocusImageAutoCaptureRequest(autoCaptureEnabled);
     } else {
         autoCaptureEnabled = false;
+        view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE->setIcon(*startIcon);
         view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE->setText("Auto");
         EnableCameraControls();
         emit FocusImageAutoCaptureRequest(autoCaptureEnabled);

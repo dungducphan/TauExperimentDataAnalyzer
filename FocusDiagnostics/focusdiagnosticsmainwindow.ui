@@ -200,6 +200,12 @@
            </item>
            <item row="9" column="3">
             <widget class="QPushButton" name="button_FOCUS_IMAGE_CAPTURE">
+             <property name="minimumSize">
+              <size>
+               <width>82</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="text">
               <string>Single</string>
              </property>

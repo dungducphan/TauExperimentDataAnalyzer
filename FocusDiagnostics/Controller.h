@@ -9,6 +9,7 @@
 // Qt
 #include <QObject>
 #include <QFileDialog>
+#include <QIcon>
 
 // Custom
 #include <focusdiagnosticsmainwindow.h>
@@ -89,4 +90,9 @@ private:
     std::vector<std::string> namesOfAvailableCameras;
     QString selectedCameraName;
     bool autoCaptureEnabled;
+
+    // Beautifiers
+    QIcon* startIcon;
+    QIcon* stopIcon;
+    QIcon* singleIcon;
 };

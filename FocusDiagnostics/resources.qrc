@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>Resources/Icons/icons8-play-48.png</file>
+        <file>Resources/Icons/icons8-play-96.png</file>
+        <file>Resources/Icons/icons8-stop-48.png</file>
+        <file>Resources/Icons/icons8-stop-96.png</file>
+        <file>Resources/Icons/icons8-keycap-digit-one-48.png</file>
+        <file>Resources/Icons/icons8-keycap-digit-one-96.png</file>
+    </qresource>
+</RCC>
