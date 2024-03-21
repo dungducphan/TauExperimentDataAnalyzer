@@ -5,7 +5,9 @@ QObject(parent),
 isCameraConnected(false),
 selectedCameraName(""),
 gainInDB(0),
-exposureTimeInMicroseconds(0) {
+exposureTimeInMicroseconds(0),
+autoCaptureTimer(new QTimer(this)) {
+    connect(autoCaptureTimer, &QTimer::timeout, this, &ISCameraController::CaptureImage);
 }
 
 ISCameraController::~ISCameraController() = default;
@@ -118,4 +120,20 @@ void ISCameraController::OnExposureTimeChanged(int exposureTime) {
         // if the above piece of code DOES NOT succeed, rollback the previous value
         emit ExposureTimeReadFromHardware(exposureTimeInMicroseconds);
     }
+}
+
+void ISCameraController::OnFocusImageCaptureRequest() const {
+    if (!isCameraConnected) return;
+    CaptureImage();
+}
+
+void ISCameraController::OnFocusImageAutoCaptureRequest(bool autoCaptureEnabled) const {
+    if (!isCameraConnected) return;
+    autoCaptureEnabled ? autoCaptureTimer->start(1000) : autoCaptureTimer->stop();
+}
+
+void ISCameraController::CaptureImage() const {
+    // FIXME
+    // code to capture an image from the camera here
+    std::cout << "Image is captured!" << std::endl;
 }

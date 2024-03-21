@@ -9,6 +9,7 @@
 
 // Qt
 #include <QObject>
+#include <QTimer>
 
 class ISCameraController : public QObject {
     Q_OBJECT
@@ -23,6 +24,8 @@ public slots:
     void OnCameraSelected(const QString& cameraName);
     void OnGainChanged(int gain);
     void OnExposureTimeChanged(int exposureTime);
+    void OnFocusImageCaptureRequest() const;
+    void OnFocusImageAutoCaptureRequest(bool) const;
 
     signals:
     void CamerasFound(std::vector<std::string> namesOfAvailableCameras) const;
@@ -35,9 +38,13 @@ private:
     QString selectedCameraName;
     int gainInDB;
     int exposureTimeInMicroseconds;
+    QTimer* autoCaptureTimer;
 
 private:
     void FindAvailableCameras() const;
     void Connect();
     void Disconnect();
+
+private slots:
+    void CaptureImage() const;
 };

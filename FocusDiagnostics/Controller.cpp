@@ -12,7 +12,8 @@ Controller::Controller(QObject* parent) :
         beamFWHMY(0),
         normalizedVectorPotential(0),
         cameraController(new ISCameraController(this)),
-        isCameraConnected(false) {
+        isCameraConnected(false),
+        autoCaptureEnabled(false) {
     view = new FocusDiagnosticsMainWindow();
     imageDataModel = new ImageDataModel(this);
     ConnectSignalsAndSlots();
@@ -147,6 +148,12 @@ void Controller::ConnectSignalsAndSlots() {
     // NORMALIZED VECTOR POTENTIAL CALCULATED
     connect(imageDataModel, &ImageDataModel::NormalizedVectorPotentialCalculated, this, &Controller::OnNormalizedVectorPotentialCalculated);
     connect(this, &Controller::NormalizedVectorPotentialCalculated, view, &FocusDiagnosticsMainWindow::OnNormalizedVectorPotentialCalculated);
+
+    // ACQUIRE BUTTON
+    connect(view->ui->button_FOCUS_IMAGE_CAPTURE, &QPushButton::clicked, this, &Controller::OnSingleAcquisitionButtonClicked);
+    connect(view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE, &QPushButton::clicked, this, &Controller::OnAutoAcquisitionButtonClicked);
+    connect(this, &Controller::FocusImageCaptureRequest, cameraController, &ISCameraController::OnFocusImageCaptureRequest);
+    connect(this, &Controller::FocusImageAutoCaptureRequest, cameraController, &ISCameraController::OnFocusImageAutoCaptureRequest);
 }
 
 void Controller::OnGainChangedFromSlider(int gain) {
@@ -194,9 +201,43 @@ void Controller::OnModeChanged(int index) {
     emit ModeChanged(displayMode);
 }
 
+void Controller::OnSingleAcquisitionButtonClicked() const {
+    if (!isCameraConnected) return;
+    emit FocusImageCaptureRequest();
+}
 
-void Controller::OnAcquireButtonClicked() {
+void Controller::DisableCameraControls() {
+    view->ui->button_CAMERA_CONNECTION->setDisabled(true);
+    view->ui->comboBox_CAMERA_LIST->setDisabled(true);
+    view->ui->slider_GAIN->setDisabled(true);
+    view->ui->spinbox_GAIN->setDisabled(true);
+    view->ui->slider_EXPOSURE_TIME->setDisabled(true);
+    view->ui->spinbox_EXPOSURE_TIME->setDisabled(true);
+}
 
+void Controller::EnableCameraControls() {
+    view->ui->button_CAMERA_CONNECTION->setDisabled(false);
+    view->ui->comboBox_CAMERA_LIST->setDisabled(false);
+    view->ui->slider_GAIN->setDisabled(false);
+    view->ui->spinbox_GAIN->setDisabled(false);
+    view->ui->slider_EXPOSURE_TIME->setDisabled(false);
+    view->ui->spinbox_EXPOSURE_TIME->setDisabled(false);
+}
+
+void Controller::OnAutoAcquisitionButtonClicked() {
+    if (!isCameraConnected) return;
+
+    if (view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE->text() == "Auto") {
+        autoCaptureEnabled = true;
+        view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE->setText("Stop");
+        DisableCameraControls();
+        emit FocusImageAutoCaptureRequest(autoCaptureEnabled);
+    } else {
+        autoCaptureEnabled = false;
+        view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE->setText("Auto");
+        EnableCameraControls();
+        emit FocusImageAutoCaptureRequest(autoCaptureEnabled);
+    }
 }
 
 void Controller::OnFocusImageFileSelectButtonClicked() {

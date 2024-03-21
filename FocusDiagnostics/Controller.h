@@ -27,6 +27,8 @@ public:
 private:
     void ConnectSignalsAndSlots();
     void Initialize();
+    void DisableCameraControls();
+    void EnableCameraControls();
 
 public slots:
     void OnGainChangedFromSlider(int gain);
@@ -36,7 +38,8 @@ public slots:
     void OnExposureTimeChangedFromSpinBox();
     void OnExposureTimeReadFromHardware(int exposureTime);
     void OnFocusImageFileSelectButtonClicked();
-    void OnAcquireButtonClicked();
+    void OnSingleAcquisitionButtonClicked() const;
+    void OnAutoAcquisitionButtonClicked();
     void OnModeChanged(int index);
     void OnBeamEnergyChanged();
     void OnPulseDurationChanged();
@@ -61,6 +64,8 @@ signals:
     void CameraConnectionRequest() const;
     void CameraDisconnectionRequest() const;
     void CommunicationRequestHandled(bool) const;
+    void FocusImageCaptureRequest() const;
+    void FocusImageAutoCaptureRequest(bool) const;
 
 private:
     FocusDiagnosticsMainWindow* view;
@@ -83,4 +88,5 @@ private:
     bool isCameraConnected;
     std::vector<std::string> namesOfAvailableCameras;
     QString selectedCameraName;
+    bool autoCaptureEnabled;
 };
