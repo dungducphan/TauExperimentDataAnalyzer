@@ -6,5 +6,8 @@
         <file>Resources/Icons/icons8-stop-96.png</file>
         <file>Resources/Icons/icons8-keycap-digit-one-48.png</file>
         <file>Resources/Icons/icons8-keycap-digit-one-96.png</file>
+        <file>Resources/Icons/icons8-laser-48.png</file>
+        <file>Resources/Icons/icons8-laser-96.png</file>
+        <file>Resources/Icons/icons8-focus-64.png</file>
     </qresource>
 </RCC>
