@@ -29,8 +29,12 @@ private:
     void Initialize();
 
 public slots:
-    void OnGainChanged(int gain);
-    void OnExposureTimeChanged(int exposureTime);
+    void OnGainChangedFromSlider(int gain);
+    void OnGainChangedFromSpinBox();
+    void OnGainReadFromHardware(int gain);
+    void OnExposureTimeChangedFromSlider(int exposureTime);
+    void OnExposureTimeChangedFromSpinBox();
+    void OnExposureTimeReadFromHardware(int exposureTime);
     void OnFocusImageFileSelectButtonClicked();
     void OnAcquireButtonClicked();
     void OnModeChanged(int index);

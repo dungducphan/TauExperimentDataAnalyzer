@@ -2,8 +2,6 @@
 
 ImageDataModel::ImageDataModel(QObject* parent) :
         QObject(parent),
-        gainInDecibels(0),
-        exposureTimeInMicroseconds(0),
         focusImage(nullptr),
         focusImagePlot(new JKQTPlotter),
         focusImagePlot_ProjectionX(new JKQTPlotter),
@@ -28,14 +26,6 @@ ImageDataModel::ImageDataModel(QObject* parent) :
 }
 
 ImageDataModel::~ImageDataModel() = default;
-
-void ImageDataModel::OnGainChanged(int gain) {
-    gainInDecibels = gain;
-}
-
-void ImageDataModel::OnExposureTimeChanged(int exposureTime) {
-    exposureTimeInMicroseconds = exposureTime;
-}
 
 void ImageDataModel::OnAcquireButtonClicked() {
 

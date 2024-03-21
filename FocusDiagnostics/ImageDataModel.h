@@ -33,8 +33,6 @@ public:
     void SetPulseDuration(double duration) { pulseDurationInFemtoSeconds = duration; }
 
 public slots:
-    void OnGainChanged(int gain);
-    void OnExposureTimeChanged(int exposureTime);
     void OnAcquireButtonClicked();
     void OnModeChanged(int index);
     void OnBeamEnergyChanged(int beamEnergy);
@@ -46,8 +44,6 @@ signals:
     void NormalizedVectorPotentialCalculated(double A0) const;
 
 private:
-    int gainInDecibels;
-    int exposureTimeInMicroseconds;
 
     void JKQtPlotter_HandleFocusImageFile(const QString &filePath);
     void JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage();

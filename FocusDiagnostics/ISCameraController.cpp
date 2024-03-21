@@ -59,8 +59,8 @@ void ISCameraController::Connect() {
         exposureTimeInMicroseconds = 300000;
     }
 
-    emit GainChanged(gainInDB);
-    emit ExposureTimeChanged(exposureTimeInMicroseconds);
+    emit GainReadFromHardware(gainInDB);
+    emit ExposureTimeReadFromHardware(exposureTimeInMicroseconds);
 }
 
 void ISCameraController::OnCameraDisconnectionRequest() {
@@ -82,4 +82,40 @@ void ISCameraController::Disconnect() {
 
 void ISCameraController::OnCameraSelected(const QString &cameraName) {
     selectedCameraName = cameraName;
+}
+
+void ISCameraController::OnGainChanged(int gain) {
+    if (!isCameraConnected) return;
+    if (gainInDB == gain) return;
+
+    // FIXME
+    // code to set the gain of the camera here, using the gain from the argument
+    std::cout << "Gain is set to " << gain << " dB" << std::endl;
+    bool success = true; // replace this line with the actual code to set the gain
+
+    if (success) {
+        // if above piece of code succeeds, update the gainInDB
+        gainInDB = gain;
+    } else {
+        // if the above piece of code DOES NOT succeed, rollback the previous value
+        emit ExposureTimeReadFromHardware(gainInDB);
+    }
+}
+
+void ISCameraController::OnExposureTimeChanged(int exposureTime) {
+    if (!isCameraConnected) return;
+    if (exposureTimeInMicroseconds == exposureTime) return;
+
+    // FIXME
+    // code to set the exposure time of the camera here, using the exposure time from the argument
+    std::cout << "Exposure time is set to " << exposureTime << " microseconds" << std::endl;
+    bool success = true; // replace this line with the actual code to set the exposure time
+
+    if (success) {
+        // if above piece of code succeeds, update the exposureTimeInMicroseconds
+        exposureTimeInMicroseconds = exposureTime;
+    } else {
+        // if the above piece of code DOES NOT succeed, rollback the previous value
+        emit ExposureTimeReadFromHardware(exposureTimeInMicroseconds);
+    }
 }

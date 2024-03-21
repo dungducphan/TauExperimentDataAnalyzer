@@ -21,12 +21,14 @@ public slots:
     void OnCameraConnectionRequest();
     void OnCameraDisconnectionRequest();
     void OnCameraSelected(const QString& cameraName);
+    void OnGainChanged(int gain);
+    void OnExposureTimeChanged(int exposureTime);
 
     signals:
     void CamerasFound(std::vector<std::string> namesOfAvailableCameras) const;
     void CommunicationRequestHandled(bool) const;
-    void GainChanged(int) const;
-    void ExposureTimeChanged(int) const;
+    void GainReadFromHardware(int) const;
+    void ExposureTimeReadFromHardware(int) const;
 
 private:
     bool isCameraConnected;
