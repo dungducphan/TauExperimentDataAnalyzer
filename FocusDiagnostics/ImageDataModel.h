@@ -19,9 +19,6 @@
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpgeometric.h"
 
-// Custom
-#include <ISCameraController.h>
-
 class ImageDataModel : public QObject {
     Q_OBJECT
 public:
@@ -31,7 +28,6 @@ public:
     [[nodiscard]] JKQTPlotter* GetFocusImagePlot() const { return focusImagePlot; }
     [[nodiscard]] JKQTPlotter* GetFocusImagePlot_ProjectionX() const { return focusImagePlot_ProjectionX; }
     [[nodiscard]] JKQTPlotter* GetFocusImagePlot_ProjectionY() const { return focusImagePlot_ProjectionY; }
-    [[nodiscard]] ISCameraController* GetCameraController() const { return cameraController; }
 
     void SetBeamEnergy(double energy) { beamEnergyInMilliJoules = energy; }
     void SetPulseDuration(double duration) { pulseDurationInFemtoSeconds = duration; }
@@ -83,6 +79,4 @@ private:
     double centroidYFWHMInMicrometers;
     JKQTPlotter* focusImagePlot_ProjectionX;
     JKQTPlotter* focusImagePlot_ProjectionY;
-
-    ISCameraController* cameraController;
 };

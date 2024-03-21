@@ -62,10 +62,23 @@ void FocusDiagnosticsMainWindow::OnNormalizedVectorPotentialCalculated(double A0
     ui->label_A0->setText(QString::number(A0, 'd', 2));
 }
 
-void FocusDiagnosticsMainWindow::OnCameraFound(const std::vector<std::string>& namesOfAvailableCameras) const {
-    ui->label_CAMERA_LIST->setText("Available Cameras");
+void FocusDiagnosticsMainWindow::OnCamerasFound(const std::vector<std::string>& namesOfAvailableCameras) const {
+    ui->comboBox_CAMERA_LIST->clear();
     for (auto& elem : namesOfAvailableCameras) {
         ui->comboBox_CAMERA_LIST->addItem(QString::fromStdString(elem));
+    }
+    ui->button_CAMERA_CONNECTION->setStyleSheet("background-color: green;");
+}
+
+void FocusDiagnosticsMainWindow::OnCommunicationRequestHandled(bool isCameraConnected) const {
+    if (isCameraConnected) {
+        ui->button_CAMERA_CONNECTION->setText("Disconnect");
+        ui->button_CAMERA_CONNECTION->setStyleSheet("background-color: red;");
+        ui->comboBox_CAMERA_LIST->setEnabled(false);
+    } else {
+        ui->button_CAMERA_CONNECTION->setText("Connect");
+        ui->button_CAMERA_CONNECTION->setStyleSheet("background-color: green;");
+        ui->comboBox_CAMERA_LIST->setEnabled(true);
     }
 }
 

@@ -279,7 +279,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="label_CAMERA_LIST">
              <property name="text">
-              <string>Searching...</string>
+              <string>Select Camera</string>
              </property>
             </widget>
            </item>

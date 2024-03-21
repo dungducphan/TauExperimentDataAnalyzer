@@ -1,8 +1,8 @@
 #include "Controller.h"
 
-Controller::Controller() :
-        QObject(nullptr),
-        displayMode(0),
+Controller::Controller(QObject* parent) :
+        QObject(parent),
+        displayMode(1),
         isAcquiring(false),
         gainInDecibels(0),
         exposureTimeInMicroseconds(0),
@@ -10,9 +10,12 @@ Controller::Controller() :
         pulseDurationInFemtoSeconds(0),
         beamFWHMX(0),
         beamFWHMY(0),
-        normalizedVectorPotential(0) {
+        normalizedVectorPotential(0),
+        cameraController(new ISCameraController(this)),
+        isCameraConnected(false) {
     view = new FocusDiagnosticsMainWindow();
     imageDataModel = new ImageDataModel(this);
+    ConnectSignalsAndSlots();
     Initialize();
 }
 
@@ -111,8 +114,24 @@ void Controller::ConnectSignalsAndSlots() {
     connect(view->ui->combobox_MODE, &QComboBox::currentIndexChanged, this, &Controller::OnModeChanged);
     connect(this, &Controller::ModeChanged, view, &FocusDiagnosticsMainWindow::OnModeChanged);
     connect(this, &Controller::ModeChanged, imageDataModel, &ImageDataModel::OnModeChanged);
+    connect(this, &Controller::ModeChanged, cameraController, &ISCameraController::OnModeChanged);
+
     // SEARCHING CAMERAS
-    connect(imageDataModel->GetCameraController(), &ISCameraController::CameraFound, view, &FocusDiagnosticsMainWindow::OnCameraFound);
+    connect(cameraController, &ISCameraController::CamerasFound, this, &Controller::OnCamerasFound);
+    connect(this, &Controller::CamerasFound, view, &FocusDiagnosticsMainWindow::OnCamerasFound);
+
+    // SELECT CAMERA
+    connect(view->ui->comboBox_CAMERA_LIST, &QComboBox::currentTextChanged, this, &Controller::OnCameraSelected);
+    connect(this, &Controller::CameraSelected, cameraController, &ISCameraController::OnCameraSelected);
+
+    // CLICK CONNECT BUTTON ON SELECTED CAMERA
+    connect(view->ui->button_CAMERA_CONNECTION, &QPushButton::clicked, this, &Controller::OnCameraConnectionButtonClicked);
+    connect(this, &Controller::CameraConnectionRequest, cameraController, &ISCameraController::OnCameraConnectionRequest);
+    connect(this, &Controller::CameraDisconnectionRequest, cameraController, &ISCameraController::OnCameraDisconnectionRequest);
+
+    // CAMERA CONNECTION STATUS
+    connect(cameraController, &ISCameraController::CameraConnected, this, &Controller::OnCommunicationRequestHandled);
+    connect(this, &Controller::CommunicationRequestHandled, view, &FocusDiagnosticsMainWindow::OnCommunicationRequestHandled);
 
     // FOCUS IMAGE FILE SELECT
     connect(view->ui->button_FOCUS_IMAGE_FILE_SELECT, &QPushButton::clicked, this, &Controller::OnFocusImageFileSelectButtonClicked);
@@ -182,4 +201,30 @@ void Controller::OnBeamFWHMCalculated(double FWHMX, double FWHMY) {
 void Controller::OnNormalizedVectorPotentialCalculated(double A0) {
     normalizedVectorPotential = A0;
     emit NormalizedVectorPotentialCalculated(normalizedVectorPotential);
+}
+
+void Controller::OnCamerasFound(const std::vector<std::string> &availableCameras) {
+    namesOfAvailableCameras.clear();
+    for (auto& elem : availableCameras) namesOfAvailableCameras.push_back(elem);
+    emit CamerasFound(namesOfAvailableCameras);
+}
+
+void Controller::OnCameraConnectionButtonClicked() const {
+    std::cout << "Button clicked\n";
+    std::cout << "isCameraConnected: " << isCameraConnected << std::endl;
+    if (!isCameraConnected) {
+        emit CameraConnectionRequest();
+    } else {
+        emit CameraDisconnectionRequest();
+    }
+}
+
+void Controller::OnCommunicationRequestHandled(bool camConnect) {
+    isCameraConnected = camConnect;
+    emit CommunicationRequestHandled(isCameraConnected);
+}
+
+void Controller::OnCameraSelected(const QString &cameraName) {
+    selectedCameraName = cameraName;
+    emit CameraSelected(selectedCameraName);
 }
