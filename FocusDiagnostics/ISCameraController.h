@@ -24,11 +24,15 @@ public slots:
 
     signals:
     void CamerasFound(std::vector<std::string> namesOfAvailableCameras) const;
-    void CameraConnected(bool) const;
+    void CommunicationRequestHandled(bool) const;
+    void GainChanged(int) const;
+    void ExposureTimeChanged(int) const;
 
 private:
     bool isCameraConnected;
     QString selectedCameraName;
+    int gainInDB;
+    int exposureTimeInMicroseconds;
 
 private:
     void FindAvailableCameras() const;

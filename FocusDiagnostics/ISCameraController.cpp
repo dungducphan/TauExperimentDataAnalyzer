@@ -1,7 +1,11 @@
 #include <ISCameraController.h>
 
 ISCameraController::ISCameraController(QObject* parent) :
-QObject(parent), isCameraConnected(false) {
+QObject(parent),
+isCameraConnected(false),
+selectedCameraName(""),
+gainInDB(0),
+exposureTimeInMicroseconds(0) {
 }
 
 ISCameraController::~ISCameraController() = default;
@@ -31,14 +35,32 @@ void ISCameraController::OnCameraConnectionRequest() {
         Connect();
     }
 
-    emit CameraConnected(isCameraConnected);
+    emit CommunicationRequestHandled(isCameraConnected);
 }
 
 void ISCameraController::Connect() {
     // FIXME
     // code to establish connection with the camera here
+
     std::cout << selectedCameraName.toStdString() << " is connected!" << std::endl;
     isCameraConnected = true;
+    // once the connection is established, get the current gain and exposure time from the camera
+
+    // FIXME
+    // This is just a mock code to simulate gain and exposure time control
+    if (selectedCameraName == "Camera 1") {
+        gainInDB = 10;
+        exposureTimeInMicroseconds = 100000;
+    } else if (selectedCameraName == "Camera 2") {
+        gainInDB = 20;
+        exposureTimeInMicroseconds = 200000;
+    } else if (selectedCameraName == "Camera 3") {
+        gainInDB = 30;
+        exposureTimeInMicroseconds = 300000;
+    }
+
+    emit GainChanged(gainInDB);
+    emit ExposureTimeChanged(exposureTimeInMicroseconds);
 }
 
 void ISCameraController::OnCameraDisconnectionRequest() {
@@ -48,7 +70,7 @@ void ISCameraController::OnCameraDisconnectionRequest() {
         Disconnect();
     }
 
-    emit CameraConnected(isCameraConnected);
+    emit CommunicationRequestHandled(isCameraConnected);
 }
 
 void ISCameraController::Disconnect() {

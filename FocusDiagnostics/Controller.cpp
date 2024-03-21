@@ -89,14 +89,14 @@ void Controller::ShowView() {
 
 void Controller::ConnectSignalsAndSlots() {
     // GAIN
-    connect(view->ui->slider_GAIN, &QSlider::valueChanged, this, &Controller::OnGainChangedFromSlider);
-    connect(view->ui->spinbox_GAIN, &QDoubleSpinBox::editingFinished, this, &Controller::OnGainChangedFromSpinbox);
+    connect(view->ui->slider_GAIN, &QSlider::valueChanged, this, &Controller::OnGainChanged);
+    connect(view->ui->spinbox_GAIN, &QSpinBox::valueChanged, this, &Controller::OnGainChanged);
     connect(this, &Controller::GainChanged, view, &FocusDiagnosticsMainWindow::OnGainChanged);
     connect(this, &Controller::GainChanged, imageDataModel, &ImageDataModel::OnGainChanged);
 
     // EXPOSURE TIME
-    connect(view->ui->slider_EXPOSURE_TIME, &QSlider::valueChanged, this, &Controller::OnExposureTimeChangedFromSlider);
-    connect(view->ui->spinbox_EXPOSURE_TIME, &QDoubleSpinBox::editingFinished, this, &Controller::OnExposureTimeChangedFromSpinbox);
+    connect(view->ui->slider_EXPOSURE_TIME, &QSlider::valueChanged, this, &Controller::OnExposureTimeChanged);
+    connect(view->ui->spinbox_EXPOSURE_TIME, &QSpinBox::valueChanged, this, &Controller::OnExposureTimeChanged);
     connect(this, &Controller::ExposureTimeChanged, view, &FocusDiagnosticsMainWindow::OnExposureTimeChanged);
     connect(this, &Controller::ExposureTimeChanged, imageDataModel, &ImageDataModel::OnExposureTimeChanged);
 
@@ -127,10 +127,12 @@ void Controller::ConnectSignalsAndSlots() {
     // CLICK CONNECT BUTTON ON SELECTED CAMERA
     connect(view->ui->button_CAMERA_CONNECTION, &QPushButton::clicked, this, &Controller::OnCameraConnectionButtonClicked);
     connect(this, &Controller::CameraConnectionRequest, cameraController, &ISCameraController::OnCameraConnectionRequest);
+    connect(cameraController, &ISCameraController::GainChanged, this, &Controller::OnGainChanged);
+    connect(cameraController, &ISCameraController::ExposureTimeChanged, this, &Controller::OnExposureTimeChanged);
     connect(this, &Controller::CameraDisconnectionRequest, cameraController, &ISCameraController::OnCameraDisconnectionRequest);
 
     // CAMERA CONNECTION STATUS
-    connect(cameraController, &ISCameraController::CameraConnected, this, &Controller::OnCommunicationRequestHandled);
+    connect(cameraController, &ISCameraController::CommunicationRequestHandled, this, &Controller::OnCommunicationRequestHandled);
     connect(this, &Controller::CommunicationRequestHandled, view, &FocusDiagnosticsMainWindow::OnCommunicationRequestHandled);
 
     // FOCUS IMAGE FILE SELECT
@@ -147,23 +149,13 @@ void Controller::ConnectSignalsAndSlots() {
     connect(this, &Controller::NormalizedVectorPotentialCalculated, view, &FocusDiagnosticsMainWindow::OnNormalizedVectorPotentialCalculated);
 }
 
-void Controller::OnGainChangedFromSlider(int gain) {
+void Controller::OnGainChanged(int gain) {
     gainInDecibels = gain;
     emit GainChanged(gainInDecibels);
 }
 
-void Controller::OnGainChangedFromSpinbox() {
-    gainInDecibels = view->ui->spinbox_GAIN->value();
-    emit GainChanged(gainInDecibels);
-}
-
-void Controller::OnExposureTimeChangedFromSlider(int exposureTime) {
+void Controller::OnExposureTimeChanged(int exposureTime) {
     exposureTimeInMicroseconds = exposureTime;
-    emit ExposureTimeChanged(exposureTimeInMicroseconds);
-}
-
-void Controller::OnExposureTimeChangedFromSpinbox() {
-    exposureTimeInMicroseconds = view->ui->spinbox_EXPOSURE_TIME->value();
     emit ExposureTimeChanged(exposureTimeInMicroseconds);
 }
 

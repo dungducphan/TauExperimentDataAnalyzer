@@ -143,15 +143,128 @@
          </property>
          <widget class="QWidget" name="page_ONLINE_MONITORING">
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="0" colspan="7">
-            <widget class="QLabel" name="label">
+           <item row="1" column="4">
+            <widget class="QPushButton" name="button_CAMERA_CONNECTION">
+             <property name="text">
+              <string>Connect</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="label_18">
              <property name="font">
               <font>
                <bold>true</bold>
               </font>
              </property>
              <property name="text">
-              <string>Camera Settings</string>
+              <string>Focus Image Capture</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1" colspan="3">
+            <widget class="QSlider" name="slider_GAIN">
+             <property name="maximum">
+              <number>100</number>
+             </property>
+             <property name="singleStep">
+              <number>1</number>
+             </property>
+             <property name="tracking">
+              <bool>false</bool>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="4">
+            <widget class="QSpinBox" name="spinbox_EXPOSURE_TIME">
+             <property name="maximum">
+              <number>10000000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="2">
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="9" column="3">
+            <widget class="QPushButton" name="button_FOCUS_IMAGE_CAPTURE">
+             <property name="text">
+              <string>Single</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Exposure Time</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="5">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>dB</string>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="4">
+            <widget class="QPushButton" name="button_FOCUS_IMAGE_AUTO_CAPTURE">
+             <property name="text">
+              <string>Auto</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="5">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>us</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="0" colspan="4">
+            <widget class="QComboBox" name="comboBox_CAMERA_LIST"/>
+           </item>
+           <item row="4" column="1" colspan="3">
+            <widget class="QSlider" name="slider_EXPOSURE_TIME">
+             <property name="maximum">
+              <number>10000000</number>
+             </property>
+             <property name="tracking">
+              <bool>false</bool>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
             </widget>
            </item>
@@ -168,91 +281,10 @@
              </property>
             </spacer>
            </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_3">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Exposure Time</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="2" colspan="3">
-            <widget class="QSlider" name="slider_EXPOSURE_TIME">
-             <property name="maximum">
-              <number>10000000</number>
-             </property>
-             <property name="tracking">
-              <bool>false</bool>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="2" colspan="3">
-            <widget class="QSlider" name="slider_GAIN">
+           <item row="3" column="4">
+            <widget class="QSpinBox" name="spinbox_GAIN">
              <property name="maximum">
               <number>100</number>
-             </property>
-             <property name="singleStep">
-              <number>1</number>
-             </property>
-             <property name="tracking">
-              <bool>false</bool>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="6">
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>dB</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="3">
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="1" column="5">
-            <widget class="QPushButton" name="button_CAMERA_CONNECTION">
-             <property name="text">
-              <string>Connect</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="4">
-            <widget class="QPushButton" name="button_FOCUS_IMAGE_CAPTURE">
-             <property name="text">
-              <string>Capture</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="label_18">
-             <property name="font">
-              <font>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Focus Image Capture</string>
              </property>
             </widget>
            </item>
@@ -269,79 +301,20 @@
              </property>
             </widget>
            </item>
-           <item row="9" column="5">
-            <widget class="QPushButton" name="button_FOCUS_IMAGE_AUTO_CAPTURE">
+           <item row="0" column="0" colspan="6">
+            <widget class="QLabel" name="label">
+             <property name="font">
+              <font>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
-              <string>Auto</string>
+              <string>Camera Settings</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_CAMERA_LIST">
-             <property name="text">
-              <string>Select Camera</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <spacer name="horizontalSpacer_4">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="4" column="5">
-            <widget class="QSpinBox" name="spinbox_EXPOSURE_TIME">
-             <property name="maximum">
-              <number>10000000</number>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="3">
-            <widget class="QPushButton" name="button_FOCUS_IMAGE_VIEW">
-             <property name="text">
-              <string>View</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="6">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>us</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="1" column="3" colspan="2">
-            <widget class="QComboBox" name="comboBox_CAMERA_LIST"/>
-           </item>
-           <item row="3" column="5">
-            <widget class="QSpinBox" name="spinbox_GAIN">
-             <property name="maximum">
-              <number>100</number>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <spacer name="horizontalSpacer_6">
+           <item row="9" column="2">
+            <spacer name="horizontalSpacer_7">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
