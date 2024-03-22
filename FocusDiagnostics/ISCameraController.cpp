@@ -12,7 +12,8 @@ Ny(0),
 imageBuffer(nullptr),
 monitor(nullptr),
 source(nullptr),
-pipeline_capture(nullptr) {
+pipeline_capture(nullptr),
+autoCaptureEnabled(false) {
 }
 
 ISCameraController::~ISCameraController() = default;
@@ -156,11 +157,15 @@ void ISCameraController::OnExposureTimeChanged(int exposureTime) {
     }
 }
 
-void ISCameraController::OnFocusImageCaptureRequest() const {}
+void ISCameraController::OnFocusImageCaptureRequest() const {
+    if (!isCameraConnected) return;
+    gst_element_set_state(pipeline_capture, GST_STATE_PLAYING);
+}
 
-void ISCameraController::OnFocusImageAutoCaptureRequest(bool autoCaptureEnabled) const {
+void ISCameraController::OnFocusImageAutoCaptureRequest(bool autoCaptureEnabledArg) {
     if (!isCameraConnected) return;
 
+    autoCaptureEnabled = autoCaptureEnabledArg;
     if (autoCaptureEnabled) {
         // Start capturing images
         gst_element_set_state(pipeline_capture, GST_STATE_PLAYING);
@@ -226,5 +231,7 @@ void ISCameraController::OnImageBeingProcessed() const {
 }
 
 void ISCameraController::OnImageProcessingCompleted() const {
-    gst_element_set_state(pipeline_capture, GST_STATE_PLAYING);
+    free(imageBuffer);
+    if (autoCaptureEnabled) gst_element_set_state(pipeline_capture, GST_STATE_PLAYING);
+    if (!autoCaptureEnabled) gst_element_set_state(pipeline_capture, GST_STATE_READY);
 }

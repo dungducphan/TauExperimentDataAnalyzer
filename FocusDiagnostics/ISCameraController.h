@@ -29,7 +29,7 @@ public slots:
     void OnGainChanged(int gain);
     void OnExposureTimeChanged(int exposureTime);
     void OnFocusImageCaptureRequest() const;
-    void OnFocusImageAutoCaptureRequest(bool) const;
+    void OnFocusImageAutoCaptureRequest(bool);
     void OnImageBeingProcessed() const;
     void OnImageProcessingCompleted() const;
     static GstFlowReturn CaptureImageCallback(GstElement*, void*);
@@ -59,6 +59,7 @@ private:
     GstDeviceMonitor* monitor;
     GstElement* source;
     GstElement* pipeline_capture;
+    bool autoCaptureEnabled;
 
 private:
     void FindAvailableCameras();
