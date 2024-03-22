@@ -46,8 +46,8 @@ public slots:
     void OnPulseDurationChanged();
     void OnBeamFWHMCalculated(double FWHMX, double FWHMY);
     void OnNormalizedVectorPotentialCalculated(double A0);
-    void OnCamerasFound(const std::vector<std::string>& namesOfAvailableCameras);
-    void OnCameraSelected(const QString& cameraName);
+    void OnCamerasFound(const std::vector<std::pair<std::string, std::string>>& namesOfAvailableCameras);
+    void OnCameraSelected(const int &cameraIndex);
     void OnCameraConnectionButtonClicked() const;
     void OnCommunicationRequestHandled(bool);
 
@@ -60,8 +60,8 @@ signals:
     void FocusImageFileSelected(const QString& filePath) const;
     void BeamFWHMCalculated(double FWHMX, double FWHMY) const;
     void NormalizedVectorPotentialCalculated(double A0) const;
-    void CamerasFound(const std::vector<std::string>& namesOfAvailableCameras) const;
-    void CameraSelected(const QString& cameraName) const;
+    void CamerasFound(const std::vector<std::pair<std::string, std::string>>& namesOfAvailableCameras) const;
+    void CameraSelected(const int &cameraIndex) const;
     void CameraConnectionRequest() const;
     void CameraDisconnectionRequest() const;
     void CommunicationRequestHandled(bool) const;
@@ -87,8 +87,9 @@ private:
 
     ISCameraController* cameraController;
     bool isCameraConnected;
-    std::vector<std::string> namesOfAvailableCameras;
+    std::vector<std::pair<std::string, std::string>> listOfAvailableCameras;
     QString selectedCameraName;
+    QString selectedCameraSerial;
     bool autoCaptureEnabled;
 
     // Beautifiers

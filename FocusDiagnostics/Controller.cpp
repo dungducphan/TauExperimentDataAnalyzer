@@ -129,7 +129,7 @@ void Controller::ConnectSignalsAndSlots() {
     connect(this, &Controller::CamerasFound, view, &FocusDiagnosticsMainWindow::OnCamerasFound);
 
     // SELECT CAMERA
-    connect(view->ui->comboBox_CAMERA_LIST, &QComboBox::currentTextChanged, this, &Controller::OnCameraSelected);
+    connect(view->ui->comboBox_CAMERA_LIST, &QComboBox::currentIndexChanged, this, &Controller::OnCameraSelected);
     connect(this, &Controller::CameraSelected, cameraController, &ISCameraController::OnCameraSelected);
 
     // CLICK CONNECT BUTTON ON SELECTED CAMERA
@@ -270,15 +270,13 @@ void Controller::OnNormalizedVectorPotentialCalculated(double A0) {
     emit NormalizedVectorPotentialCalculated(normalizedVectorPotential);
 }
 
-void Controller::OnCamerasFound(const std::vector<std::string> &availableCameras) {
-    namesOfAvailableCameras.clear();
-    for (auto& elem : availableCameras) namesOfAvailableCameras.push_back(elem);
-    emit CamerasFound(namesOfAvailableCameras);
+void Controller::OnCamerasFound(const std::vector<std::pair<std::string, std::string>> &availableCameras) {
+    listOfAvailableCameras.clear();
+    for (auto& elem : availableCameras) listOfAvailableCameras.push_back(elem);
+    emit CamerasFound(listOfAvailableCameras);
 }
 
 void Controller::OnCameraConnectionButtonClicked() const {
-    std::cout << "Button clicked\n";
-    std::cout << "isCameraConnected: " << isCameraConnected << std::endl;
     if (!isCameraConnected) {
         emit CameraConnectionRequest();
     } else {
@@ -291,7 +289,8 @@ void Controller::OnCommunicationRequestHandled(bool camConnect) {
     emit CommunicationRequestHandled(isCameraConnected);
 }
 
-void Controller::OnCameraSelected(const QString &cameraName) {
-    selectedCameraName = cameraName;
-    emit CameraSelected(selectedCameraName);
+void Controller::OnCameraSelected(const int &cameraIndex) {
+    selectedCameraName = listOfAvailableCameras[cameraIndex].first.c_str();
+    selectedCameraSerial = listOfAvailableCameras[cameraIndex].second.c_str();
+    emit CameraSelected(cameraIndex);
 }

@@ -29,10 +29,6 @@ void FocusDiagnosticsMainWindow::OnExposureTimeChanged(int exposureTime) const {
     }
 }
 
-void FocusDiagnosticsMainWindow::OnAcquireButtonClicked() {
-
-}
-
 void FocusDiagnosticsMainWindow::OnModeChanged(int index) const {
     if (index == 0) {
         ui->stackedWidget->setCurrentIndex(0);
@@ -62,10 +58,10 @@ void FocusDiagnosticsMainWindow::OnNormalizedVectorPotentialCalculated(double A0
     ui->label_A0->setText(QString::number(A0, 'd', 2));
 }
 
-void FocusDiagnosticsMainWindow::OnCamerasFound(const std::vector<std::string>& namesOfAvailableCameras) const {
+void FocusDiagnosticsMainWindow::OnCamerasFound(const std::vector<std::pair<std::string, std::string>>& listOfAvailableCameras) const {
     ui->comboBox_CAMERA_LIST->clear();
-    for (auto& elem : namesOfAvailableCameras) {
-        ui->comboBox_CAMERA_LIST->addItem(QString::fromStdString(elem));
+    for (auto& elem : listOfAvailableCameras) {
+        ui->comboBox_CAMERA_LIST->addItem(QString::fromStdString(elem.first));
     }
     ui->button_CAMERA_CONNECTION->setStyleSheet("background-color: green;");
 }

@@ -2,8 +2,12 @@
 
 // STD
 #include <iostream>
+#include <format>
+#include <cstdio>
+#include <cstring>
+#include <unistd.h>
 
-// Image Capture SDK
+// Imaging Source SDK
 #include <gst/gst.h>
 #include <tcam-property-1.0.h>
 
@@ -18,17 +22,17 @@ public:
     ~ISCameraController() override;
 
 public slots:
-    void OnModeChanged(int index) const;
+    void OnModeChanged(int index);
     void OnCameraConnectionRequest();
     void OnCameraDisconnectionRequest();
-    void OnCameraSelected(const QString& cameraName);
+    void OnCameraSelected(const int &cameraIndex);
     void OnGainChanged(int gain);
     void OnExposureTimeChanged(int exposureTime);
     void OnFocusImageCaptureRequest() const;
     void OnFocusImageAutoCaptureRequest(bool) const;
 
     signals:
-    void CamerasFound(std::vector<std::string> namesOfAvailableCameras) const;
+    void CamerasFound(std::vector<std::pair<std::string, std::string>>& namesOfAvailableCameras) const;
     void CommunicationRequestHandled(bool) const;
     void GainReadFromHardware(int) const;
     void ExposureTimeReadFromHardware(int) const;
@@ -37,6 +41,8 @@ public slots:
 private:
     bool isCameraConnected;
     QString selectedCameraName;
+    QString selectedCameraSerial;
+    std::vector<std::pair<std::string, std::string>> listOfAvailableCameras;
     int gainInDB;
     int exposureTimeInMicroseconds;
     QTimer* autoCaptureTimer;
@@ -45,8 +51,11 @@ private:
     int Ny;
     uint32_t* imageBuffer;
 
+    GstDeviceMonitor* monitor;
+    GstElement* source;
+
 private:
-    void FindAvailableCameras() const;
+    void FindAvailableCameras();
     void Connect();
     void Disconnect();
 

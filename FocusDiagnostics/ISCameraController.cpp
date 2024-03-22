@@ -1,4 +1,5 @@
 #include <ISCameraController.h>
+#include <ISCameraHelpers.h>
 
 ISCameraController::ISCameraController(QObject* parent) :
 QObject(parent),
@@ -9,27 +10,40 @@ exposureTimeInMicroseconds(0),
 autoCaptureTimer(new QTimer(this)),
 Nx(0),
 Ny(0),
-imageBuffer(nullptr) {
+imageBuffer(nullptr),
+monitor(nullptr),
+source(nullptr) {
     connect(autoCaptureTimer, &QTimer::timeout, this, &ISCameraController::CaptureImage);
 }
 
 ISCameraController::~ISCameraController() = default;
 
-void ISCameraController::FindAvailableCameras() const {
-    std::vector<std::string> namesOfAvailableCameras;
+void ISCameraController::FindAvailableCameras() {
+    listOfAvailableCameras.clear();
 
-    // FIXME:
-    // code to find available cameras here
-    // replace the following line with the actual codes
-    namesOfAvailableCameras.emplace_back("Camera 1");
-    namesOfAvailableCameras.emplace_back("Camera 2");
-    namesOfAvailableCameras.emplace_back("Camera 3");
+    // The device monitor listens to device activities for us
+    monitor = gst_device_monitor_new();
 
-    emit CamerasFound(namesOfAvailableCameras);
+    // We are only interested in devices that are in the categories Video and Source and tcam
+    gst_device_monitor_add_filter(monitor, "Video/Source/tcam", nullptr);
+
+    // Static query: list all devices that are available right now
+    GList* devices = gst_device_monitor_get_devices(monitor);
+    for (GList* elem = devices; elem; elem = elem->next) {
+        auto device = (GstDevice*) elem->data;
+        GstStructure* metadataStruct = gst_device_get_properties(device);
+        std::string deviceName = std::format("(S/N {}) - {}-{}", gst_structure_get_string(metadataStruct, "serial"), gst_structure_get_string(metadataStruct, "model"), gst_structure_get_string(metadataStruct, "type"));
+        std::string deviceSerial = gst_structure_get_string(metadataStruct, "serial");
+        listOfAvailableCameras.emplace_back(deviceName, deviceSerial);
+        gst_structure_free(metadataStruct);
+    }
+    g_list_free_full(devices, gst_object_unref);
+
+    emit CamerasFound(listOfAvailableCameras);
 }
 
-void ISCameraController::OnModeChanged(int index) const {
-    if (index != 1) return;
+void ISCameraController::OnModeChanged(int index) {
+    if (index != 0) return;
     if (!isCameraConnected) FindAvailableCameras();
 }
 
@@ -44,25 +58,29 @@ void ISCameraController::OnCameraConnectionRequest() {
 }
 
 void ISCameraController::Connect() {
-    // FIXME
-    // code to establish connection with the camera here
+    /* create a tcambin to retrieve device information */
+    source = gst_element_factory_make("tcambin", "source");
+    const char* serial = selectedCameraSerial.toStdString().c_str();
+    if (serial != nullptr) {
+        GValue val = {};
+        g_value_init(&val, G_TYPE_STRING);
+        g_value_set_static_string(&val, serial);
+        g_object_set_property(G_OBJECT(source), "serial", &val);
+    }
+
+    // in the READY state the camera will be initialized and properties will be available
+    gst_element_set_state(source, GST_STATE_READY);
 
     std::cout << selectedCameraName.toStdString() << " is connected!" << std::endl;
     isCameraConnected = true;
-    // once the connection is established, get the current gain and exposure time from the camera
 
-    // FIXME
-    // This is just a mock code to simulate gain and exposure time control
-    if (selectedCameraName == "Camera 1") {
-        gainInDB = 10;
-        exposureTimeInMicroseconds = 100000;
-    } else if (selectedCameraName == "Camera 2") {
-        gainInDB = 20;
-        exposureTimeInMicroseconds = 200000;
-    } else if (selectedCameraName == "Camera 3") {
-        gainInDB = 30;
-        exposureTimeInMicroseconds = 300000;
-    }
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // Once the connection is established, get the current gain and exposure time from the camera,
+    // and set all other properties to default values
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    set_default_values(source);
+    exposureTimeInMicroseconds = (int) get_float_property(source, "ExposureTime");
+    gainInDB = (int) get_float_property(source, "Gain");
 
     emit GainReadFromHardware(gainInDB);
     emit ExposureTimeReadFromHardware(exposureTimeInMicroseconds);
@@ -79,14 +97,15 @@ void ISCameraController::OnCameraDisconnectionRequest() {
 }
 
 void ISCameraController::Disconnect() {
-    // FIXME
-    // code to disconnect with the camera here
+    gst_element_set_state(source, GST_STATE_NULL);
+    gst_object_unref(source);
     std::cout << selectedCameraName.toStdString() << " is disconnected!" << std::endl;
     isCameraConnected = false;
 }
 
-void ISCameraController::OnCameraSelected(const QString &cameraName) {
-    selectedCameraName = cameraName;
+void ISCameraController::OnCameraSelected(const int &cameraIndex) {
+    selectedCameraName = listOfAvailableCameras[cameraIndex].first.c_str();
+    selectedCameraSerial = listOfAvailableCameras[cameraIndex].second.c_str();
 }
 
 void ISCameraController::OnGainChanged(int gain) {

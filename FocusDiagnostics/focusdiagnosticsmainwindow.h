@@ -16,14 +16,13 @@ public:
 public slots:
     void OnGainChanged(int gain) const;
     void OnExposureTimeChanged(int exposureTime) const;
-    void OnAcquireButtonClicked();
     void OnModeChanged(int index) const;
     void OnBeamEnergyChanged(int beamEnergy);
     void OnPulseDurationChanged(int pulseDuration);
     void OnFocusImageFileSelected(const QString& filePath) const;
     void OnBeamFWHMCalculated(double FWHMX, double FWHMY) const;
     void OnNormalizedVectorPotentialCalculated(double A0) const;
-    void OnCamerasFound(const std::vector<std::string>& namesOfAvailableCameras) const;
+    void OnCamerasFound(const std::vector<std::pair<std::string, std::string>>& listOfAvailableCameras) const;
     void OnCommunicationRequestHandled(bool) const;
 
 public:
