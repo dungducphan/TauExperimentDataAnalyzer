@@ -78,3 +78,17 @@ void FocusDiagnosticsMainWindow::OnCommunicationRequestHandled(bool isCameraConn
     }
 }
 
+void FocusDiagnosticsMainWindow::OnFoundCameraGainRange(int minGain, int maxGain) const {
+    ui->slider_GAIN->setMinimum(minGain);
+    ui->slider_GAIN->setMaximum(maxGain);
+    ui->spinbox_GAIN->setMinimum(minGain);
+    ui->spinbox_GAIN->setMaximum(maxGain);
+}
+
+void FocusDiagnosticsMainWindow::OnFoundCameraExposureTimeRange(int minExposureTime, int maxExposureTime) const {
+    ui->slider_EXPOSURE_TIME->setMinimum(minExposureTime);
+    ui->slider_EXPOSURE_TIME->setMaximum(maxExposureTime);
+    ui->spinbox_EXPOSURE_TIME->setMinimum(minExposureTime);
+    ui->spinbox_EXPOSURE_TIME->setMaximum(maxExposureTime);
+}
+

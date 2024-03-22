@@ -140,6 +140,8 @@ void Controller::ConnectSignalsAndSlots() {
     // CAMERA CONNECTION STATUS
     connect(cameraController, &ISCameraController::CommunicationRequestHandled, this, &Controller::OnCommunicationRequestHandled);
     connect(this, &Controller::CommunicationRequestHandled, view, &FocusDiagnosticsMainWindow::OnCommunicationRequestHandled);
+    connect(cameraController, &ISCameraController::FoundCameraGainRange, view, &FocusDiagnosticsMainWindow::OnFoundCameraGainRange);
+    connect(cameraController, &ISCameraController::FoundCameraExposureTimeRange, view, &FocusDiagnosticsMainWindow::OnFoundCameraExposureTimeRange);
 
     // FOCUS IMAGE FILE SELECT
     connect(view->ui->button_FOCUS_IMAGE_FILE_SELECT, &QPushButton::clicked, this, &Controller::OnFocusImageFileSelectButtonClicked);

@@ -24,6 +24,8 @@ public slots:
     void OnNormalizedVectorPotentialCalculated(double A0) const;
     void OnCamerasFound(const std::vector<std::pair<std::string, std::string>>& listOfAvailableCameras) const;
     void OnCommunicationRequestHandled(bool) const;
+    void OnFoundCameraGainRange(int minGain, int maxGain) const;
+    void OnFoundCameraExposureTimeRange(int minExposureTime, int maxExposureTime) const;
 
 public:
     Ui::FocusDiagnosticsMainWindow *ui;

@@ -36,6 +36,7 @@ set(TARGET_DEPENDENCIES
         gobject-2.0
         glib-2.0
         gstreamer-1.0
+        gstvideo-1.0
 )
 
 qt_add_executable(${TARGET_NAME} MANUAL_FINALIZATION ${TARGET_SOURCES} resources.qrc)

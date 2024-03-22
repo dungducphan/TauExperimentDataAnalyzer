@@ -9,11 +9,11 @@
 
 // Imaging Source SDK
 #include <gst/gst.h>
+#include <gst/video/video.h>
 #include <tcam-property-1.0.h>
 
 // Qt
 #include <QObject>
-#include <QTimer>
 
 class ISCameraController : public QObject {
     Q_OBJECT
@@ -30,6 +30,7 @@ public slots:
     void OnExposureTimeChanged(int exposureTime);
     void OnFocusImageCaptureRequest() const;
     void OnFocusImageAutoCaptureRequest(bool) const;
+    static GstFlowReturn CaptureImageCallback(GstElement*, void*);
 
     signals:
     void CamerasFound(std::vector<std::pair<std::string, std::string>>& namesOfAvailableCameras) const;
@@ -37,6 +38,8 @@ public slots:
     void GainReadFromHardware(int) const;
     void ExposureTimeReadFromHardware(int) const;
     void ImageCaptured(uint32_t*, int, int) const;
+    void FoundCameraGainRange(int, int) const;
+    void FoundCameraExposureTimeRange(int, int) const;
 
 private:
     bool isCameraConnected;
@@ -45,7 +48,6 @@ private:
     std::vector<std::pair<std::string, std::string>> listOfAvailableCameras;
     int gainInDB;
     int exposureTimeInMicroseconds;
-    QTimer* autoCaptureTimer;
 
     int Nx;
     int Ny;
@@ -53,12 +55,10 @@ private:
 
     GstDeviceMonitor* monitor;
     GstElement* source;
+    GstElement* pipeline_capture;
 
 private:
     void FindAvailableCameras();
     void Connect();
     void Disconnect();
-
-private slots:
-    void CaptureImage() const;
 };

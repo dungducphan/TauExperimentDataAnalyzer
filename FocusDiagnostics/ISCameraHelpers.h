@@ -117,7 +117,31 @@ void list_properties(GstElement* source) {
                        "\n\n", def, value);
 
                 break;
+            }
+            case TCAM_PROPERTY_TYPE_STRING: {
+                TcamPropertyString *strProp = TCAM_PROPERTY_STRING(base_property);
+                auto value = tcam_property_string_get_value(strProp, &err);
+                if (err) {
+                    printf("%s\n", err->message);
+                    g_error_free(err);
+                    err = nullptr;
+                    break;
+                }
 
+                printf("%s\ttype: String\t"
+                       "Display Name: \"%s\" "
+                       "Category: %s\n"
+                       "\t\t\tDescription: %s\n",
+                       name,
+                       tcam_property_base_get_display_name(base_property),
+                       tcam_property_base_get_category(base_property),
+                       tcam_property_base_get_description(base_property));
+                print_flags(base_property);
+                printf("\n\n"
+                       "\t\t\tValue: %s"
+                       "\n\n", value);
+
+                break;
             }
             case TCAM_PROPERTY_TYPE_FLOAT: {
                 TcamPropertyFloat* f = TCAM_PROPERTY_FLOAT(base_property);
@@ -310,7 +334,8 @@ std::string get_enum_property(GstElement* source, const char* name) {
     return value;
 }
 
-void set_enum_property(GstElement* source, const char* name, const char* value) {
+bool set_enum_property(GstElement* source, const char* name, const char* value) {
+    bool success = false;
     GError* err = nullptr;
     TcamPropertyBase* property_base = tcam_property_provider_get_tcam_property(TCAM_PROPERTY_PROVIDER(source), name, &err);
 
@@ -331,9 +356,11 @@ void set_enum_property(GstElement* source, const char* name, const char* value) 
             err = nullptr;
         } else {
             printf("Set %s to %s\n", name, value);
+            success = true;
         }
     }
     g_object_unref(property_base);
+    return success;
 }
 
 double get_float_property(GstElement* source, const char* name) {
@@ -364,7 +391,33 @@ double get_float_property(GstElement* source, const char* name) {
     return value;
 }
 
-void set_float_property(GstElement* source, const char* name, double value) {
+void get_float_property_range(GstElement* source, const char* name, double& min, double& max) {
+    GError* err = nullptr;
+    TcamPropertyBase* property_base = tcam_property_provider_get_tcam_property(TCAM_PROPERTY_PROVIDER(source), name, &err);
+    if (err) {
+        printf("Error while retrieving property: %s\n", err->message);
+        g_error_free(err);
+        err = nullptr;
+    }
+
+    if (tcam_property_base_get_property_type(property_base) != TCAM_PROPERTY_TYPE_FLOAT) {
+        printf("%s has wrong type. This should not happen.\n", name);
+    } else {
+        TcamPropertyFloat *property_float = TCAM_PROPERTY_FLOAT(property_base);
+        tcam_property_float_get_range(property_float, &min, &max, nullptr, &err);
+        if (err) {
+            printf("Error while retrieving property: %s\n", err->message);
+            g_error_free(err);
+            err = nullptr;
+        } else {
+            printf("%s: min: %f max: %f\n", name, min, max);
+        }
+    }
+    g_object_unref(property_base);
+}
+
+bool set_float_property(GstElement* source, const char* name, double value) {
+    bool success = false;
     GError* err = nullptr;
     TcamPropertyBase* property_base = tcam_property_provider_get_tcam_property(TCAM_PROPERTY_PROVIDER(source), name, &err);
 
@@ -385,12 +438,16 @@ void set_float_property(GstElement* source, const char* name, double value) {
             err = nullptr;
         } else {
             printf("Set %s to %f\n", name, value);
+            success = true;
         }
     }
     g_object_unref(property_base);
+
+    return success;
 }
 
-void set_int_property(GstElement* source, const char* name, int value) {
+bool set_int_property(GstElement* source, const char* name, int value) {
+    bool success = false;
     GError* err = nullptr;
     TcamPropertyBase* property_base = tcam_property_provider_get_tcam_property(TCAM_PROPERTY_PROVIDER(source), name, &err);
 
@@ -411,12 +468,16 @@ void set_int_property(GstElement* source, const char* name, int value) {
             err = nullptr;
         } else {
             printf("Set %s to %i\n", name, value);
+            success = true;
         }
     }
     g_object_unref(property_base);
+
+    return success;
 }
 
-void set_bool_property(GstElement* source, const char* name, bool value) {
+bool set_bool_property(GstElement* source, const char* name, bool value) {
+    bool success = false;
     GError* err = nullptr;
     TcamPropertyBase* property_base = tcam_property_provider_get_tcam_property(TCAM_PROPERTY_PROVIDER(source), name, &err);
 
@@ -437,9 +498,11 @@ void set_bool_property(GstElement* source, const char* name, bool value) {
             err = nullptr;
         } else {
             printf("Set %s to %i\n", name, value);
+            success = true;
         }
     }
     g_object_unref(property_base);
+    return success;
 }
 
 void set_default_values(GstElement* source) {
@@ -829,4 +892,60 @@ void set_default_values(GstElement* source) {
     //    Default: 0
     //    Value: 0
     set_int_property(source, "AutoFunctionsROIHeight", 0);
+}
+
+
+static GstFlowReturn callback_capture(GstElement* sink, void* user_data __attribute__((unused))) {
+    GstSample* sample = nullptr;
+    /* Retrieve the buffer */
+    g_signal_emit_by_name(sink, "pull-sample", &sample, nullptr);
+
+    if (sample) {
+        // we have a valid sample
+        // do things with the image here
+        static guint frameCount = 0;
+        int pixel_data = -1;
+
+        GstBuffer* buffer = gst_sample_get_buffer(sample);
+        GstMapInfo info; // contains the actual image
+        if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
+            GstVideoInfo* video_info = gst_video_info_new();
+            if (!gst_video_info_from_caps(video_info, gst_sample_get_caps(sample))) {
+                // Could not parse video info (should not happen)
+                g_warning("Failed to parse video info");
+                return GST_FLOW_ERROR;
+            }
+
+            // pointer to the image data
+            unsigned char* data = info.data;
+
+            // Get the pixel value of the center pixel
+             int stride = video_info->finfo->bits / 8;
+             unsigned int pixel_offset = video_info->width / 2 * stride + video_info->width * video_info->height / 2 * stride;
+
+            /*  This is only one pixel when dealing with formats like BGRx
+                Pixel_data will consist out of
+                    pixel_offset   => B
+                    pixel_offset+1 => G
+                    pixel_offset+2 => R
+                    pixel_offset+3 => x
+             */
+
+             pixel_data = info.data[pixel_offset];
+
+            gst_buffer_unmap(buffer, &info);
+            gst_video_info_free(video_info);
+        }
+
+        GstClockTime timestamp = GST_BUFFER_PTS(buffer);
+        g_print("Captured frame %d, Pixel Value=%03d Timestamp=%" GST_TIME_FORMAT "            \r",
+                frameCount,
+                pixel_data,
+                GST_TIME_ARGS(timestamp));
+        frameCount++;
+
+        // delete our reference so that gstreamer can handle the sample
+        gst_sample_unref(sample);
+    }
+    return GST_FLOW_OK;
 }

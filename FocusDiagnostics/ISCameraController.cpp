@@ -7,13 +7,12 @@ isCameraConnected(false),
 selectedCameraName(""),
 gainInDB(0),
 exposureTimeInMicroseconds(0),
-autoCaptureTimer(new QTimer(this)),
 Nx(0),
 Ny(0),
 imageBuffer(nullptr),
 monitor(nullptr),
-source(nullptr) {
-    connect(autoCaptureTimer, &QTimer::timeout, this, &ISCameraController::CaptureImage);
+source(nullptr),
+pipeline_capture(nullptr) {
 }
 
 ISCameraController::~ISCameraController() = default;
@@ -58,15 +57,21 @@ void ISCameraController::OnCameraConnectionRequest() {
 }
 
 void ISCameraController::Connect() {
-    /* create a tcambin to retrieve device information */
-    source = gst_element_factory_make("tcambin", "source");
+    GError* err = nullptr;
+    pipeline_capture = gst_parse_launch("tcambin name=source ! videoconvert ! appsink name=sink", &err);
+    source = gst_bin_get_by_name(GST_BIN(pipeline_capture), "source");
     const char* serial = selectedCameraSerial.toStdString().c_str();
     if (serial != nullptr) {
         GValue val = {};
         g_value_init(&val, G_TYPE_STRING);
         g_value_set_static_string(&val, serial);
+
         g_object_set_property(G_OBJECT(source), "serial", &val);
     }
+    GstElement* sink = gst_bin_get_by_name(GST_BIN(pipeline_capture), "sink");
+    g_object_set(G_OBJECT(sink), "emit-signals", TRUE, nullptr);
+    g_signal_connect(sink, "new-sample", G_CALLBACK(this->CaptureImageCallback), this);
+    gst_object_unref(sink);
 
     // in the READY state the camera will be initialized and properties will be available
     gst_element_set_state(source, GST_STATE_READY);
@@ -74,14 +79,20 @@ void ISCameraController::Connect() {
     std::cout << selectedCameraName.toStdString() << " is connected!" << std::endl;
     isCameraConnected = true;
 
-    /////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Once the connection is established, get the current gain and exposure time from the camera,
     // and set all other properties to default values
-    /////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    list_properties(source);
+    double minGain, maxGain, minExposureTime, maxExposureTime;
+    get_float_property_range(source, "Gain", minGain, maxGain);
+    get_float_property_range(source, "ExposureTime", minExposureTime, maxExposureTime);
+    FoundCameraGainRange((int) minGain, (int) maxGain);
+    FoundCameraExposureTimeRange((int) minExposureTime, (int) maxExposureTime);
+
     set_default_values(source);
     exposureTimeInMicroseconds = (int) get_float_property(source, "ExposureTime");
     gainInDB = (int) get_float_property(source, "Gain");
-
     emit GainReadFromHardware(gainInDB);
     emit ExposureTimeReadFromHardware(exposureTimeInMicroseconds);
 }
@@ -97,8 +108,16 @@ void ISCameraController::OnCameraDisconnectionRequest() {
 }
 
 void ISCameraController::Disconnect() {
+    // Stop the pipeline and frees all resources
+    gst_element_set_state(pipeline_capture, GST_STATE_NULL);
+
+    // Stop the pipeline and frees all resources
     gst_element_set_state(source, GST_STATE_NULL);
     gst_object_unref(source);
+
+    // Pipeline automatically handles all elements that have been added to it.
+    gst_object_unref(pipeline_capture);
+
     std::cout << selectedCameraName.toStdString() << " is disconnected!" << std::endl;
     isCameraConnected = false;
 }
@@ -112,11 +131,7 @@ void ISCameraController::OnGainChanged(int gain) {
     if (!isCameraConnected) return;
     if (gainInDB == gain) return;
 
-    // FIXME
-    // code to set the gain of the camera here, using the gain from the argument
-    std::cout << "Gain is set to " << gain << " dB" << std::endl;
-    bool success = true; // replace this line with the actual code to set the gain
-
+    bool success = set_float_property(source, "Gain", gain);
     if (success) {
         // if above piece of code succeeds, update the gainInDB
         gainInDB = gain;
@@ -130,11 +145,7 @@ void ISCameraController::OnExposureTimeChanged(int exposureTime) {
     if (!isCameraConnected) return;
     if (exposureTimeInMicroseconds == exposureTime) return;
 
-    // FIXME
-    // code to set the exposure time of the camera here, using the exposure time from the argument
-    std::cout << "Exposure time is set to " << exposureTime << " microseconds" << std::endl;
-    bool success = true; // replace this line with the actual code to set the exposure time
-
+    bool success = set_float_property(source, "ExposureTime", exposureTime);
     if (success) {
         // if above piece of code succeeds, update the exposureTimeInMicroseconds
         exposureTimeInMicroseconds = exposureTime;
@@ -144,19 +155,79 @@ void ISCameraController::OnExposureTimeChanged(int exposureTime) {
     }
 }
 
-void ISCameraController::OnFocusImageCaptureRequest() const {
-    if (!isCameraConnected) return;
-    CaptureImage();
-}
+void ISCameraController::OnFocusImageCaptureRequest() const {}
 
 void ISCameraController::OnFocusImageAutoCaptureRequest(bool autoCaptureEnabled) const {
     if (!isCameraConnected) return;
-    autoCaptureEnabled ? autoCaptureTimer->start(1000) : autoCaptureTimer->stop();
+
+    if (autoCaptureEnabled) {
+        // Start capturing images
+        gst_element_set_state(pipeline_capture, GST_STATE_PLAYING);
+    } else {
+        // Pause capturing images
+        gst_element_set_state(pipeline_capture, GST_STATE_READY);
+    }
 }
 
-void ISCameraController::CaptureImage() const {
-    // FIXME
-    // code to capture an image from the camera here
-    std::cout << "Image is captured!" << std::endl;
-    emit ImageCaptured(imageBuffer, Nx, Ny);
+GstFlowReturn ISCameraController::CaptureImageCallback(GstElement* sink, void* user_data) {
+    // Cast user_data back to an ISCameraController pointer
+    auto controller = static_cast<ISCameraController*>(user_data);
+
+    std::cout << "CaptureImageCallback called!" << std::endl;
+
+    GstSample* sample = nullptr;
+    /* Retrieve the buffer */
+    g_signal_emit_by_name(sink, "pull-sample", &sample, nullptr);
+
+    if (sample) {
+        // we have a valid sample
+        // do things with the image here
+        static guint frameCount = 0;
+        int pixel_data = -1;
+
+        GstBuffer* buffer = gst_sample_get_buffer(sample);
+        GstMapInfo info; // contains the actual image
+        if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
+            GstVideoInfo* video_info = gst_video_info_new();
+            if (!gst_video_info_from_caps(video_info, gst_sample_get_caps(sample))) {
+                // Could not parse video info (should not happen)
+                g_warning("Failed to parse video info");
+                return GST_FLOW_ERROR;
+            }
+
+            // pointer to the image data
+            unsigned char* data = info.data;
+
+            // Get the pixel value of the center pixel
+            int stride = video_info->finfo->bits / 8;
+            unsigned int pixel_offset = video_info->width / 2 * stride + video_info->width * video_info->height / 2 * stride;
+
+            /*  This is only one pixel when dealing with formats like BGRx
+                Pixel_data will consist out of
+                    pixel_offset   => B
+                    pixel_offset+1 => G
+                    pixel_offset+2 => R
+                    pixel_offset+3 => x
+             */
+
+            pixel_data = info.data[pixel_offset];
+
+            gst_buffer_unmap(buffer, &info);
+            gst_video_info_free(video_info);
+        }
+
+        GstClockTime timestamp = GST_BUFFER_PTS(buffer);
+        g_print("Captured frame %d, Pixel Value=%03d Timestamp=%" GST_TIME_FORMAT "            \r",
+                frameCount,
+                pixel_data,
+                GST_TIME_ARGS(timestamp));
+        frameCount++;
+
+        // delete our reference so that gstreamer can handle the sample
+        gst_sample_unref(sample);
+    }
+
+    emit controller->ImageCaptured(controller->imageBuffer, controller->Nx, controller->Ny);
+
+    return GST_FLOW_OK;
 }
