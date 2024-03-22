@@ -37,6 +37,7 @@ public slots:
     void OnPulseDurationChanged(int pulseDuration);
     void OnFocusImageFileSelected(const QString& filePath);
     void OnImageCaptured(uint32_t* pixelData, int Nx, int Ny);
+    void OnImageProcessingCompleted();
 
 signals:
     void BeamFWHMCalculated(double FWHMX, double FWHMY) const;

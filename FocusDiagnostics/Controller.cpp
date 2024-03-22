@@ -166,6 +166,7 @@ void Controller::ConnectSignalsAndSlots() {
     connect(cameraController, &ISCameraController::ImageCaptured, imageDataModel, &ImageDataModel::OnImageCaptured);
     connect(cameraController, &ISCameraController::ImageBeingProcessed, cameraController, &ISCameraController::OnImageBeingProcessed);
     connect(imageDataModel, &ImageDataModel::ImageProcessingCompleted, cameraController, &ISCameraController::OnImageProcessingCompleted);
+    connect(imageDataModel, &ImageDataModel::ImageProcessingCompleted, imageDataModel, &ImageDataModel::OnImageProcessingCompleted);
 }
 
 void Controller::OnGainChangedFromSlider(int gain) {

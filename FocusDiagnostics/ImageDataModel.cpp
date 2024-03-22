@@ -303,6 +303,9 @@ void ImageDataModel::OnFocusImageFileSelected(const QString &filePath) {
 
 void ImageDataModel::OnImageCaptured(uint32_t *pixelData, int Nx, int Ny) {
     ClearDataFromPreviousImageFile();
+
+    // FIXME:
+    // In stead of using two-step copying, we can directly copy the pixelData (uint8_t) into pixelArrayData (uint32_t).
     NPixelX = Nx;
     NPixelY = Ny;
     pixelArrayData = (uint32_t *) _TIFFmalloc(NPixelX * NPixelY * sizeof(uint32_t));
@@ -312,10 +315,17 @@ void ImageDataModel::OnImageCaptured(uint32_t *pixelData, int Nx, int Ny) {
             pixelValueHistogram->Fill(pixelArrayData[i]);
         }
     }
+
     ProcessImageData();
+
     if (pixelArrayData) _TIFFfree(pixelArrayData);
     usleep(500);
 
     emit ImageProcessingCompleted();
+}
+
+void ImageDataModel::OnImageProcessingCompleted() {
+    std::cout << "Push analyzed data into the time series." << std::endl;
+    // Using this library here: https://jkriege2.github.io/JKQtPlotter/_j_k_q_t_plotter_speed_test.html
 }
 
