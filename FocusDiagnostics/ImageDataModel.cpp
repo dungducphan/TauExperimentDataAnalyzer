@@ -6,12 +6,12 @@ ImageDataModel::ImageDataModel(QObject* parent) :
         focusImagePlot(new JKQTPlotter),
         focusImagePlot_ProjectionX(new JKQTPlotter),
         focusImagePlot_ProjectionY(new JKQTPlotter),
-        pixelDataFromImage(nullptr),
+        pixelArrayData(nullptr),
         NPixelX(0),
         NPixelY(0),
         thresholdPixelValue(0),
-        cameraSensorWidthInMicrometers(299.472),
-        cameraSensorHeightInMicrometers(224.604),
+        cameraSensorWidthInMicrometers(299.472),  // taken from Phillip Franke's calibration code
+        cameraSensorHeightInMicrometers(224.604), // taken from Phillip Franke's calibration code
         centroidX(0),
         centroidY(0),
         centroidNX(0),
@@ -22,70 +22,57 @@ ImageDataModel::ImageDataModel(QObject* parent) :
         pulseDurationInFemtoSeconds(0),
         beamSpotEnergyFraction(0),
         normalizedVectorPotential(0),
-        maxPixelValue(0) {
+        maxPixelValue(0),
+        pixelValueHistogram(new TH1D("PixelValueHistogram", "Pixel Value Histogram", 256, -0.5, 255.5)),
+        totalPixelValueOfImage(0) {
 }
 
 ImageDataModel::~ImageDataModel() = default;
 
-void ImageDataModel::OnAcquireButtonClicked() {
-
-}
-
-void ImageDataModel::OnModeChanged(int index) {
-}
-
 void ImageDataModel::OnBeamEnergyChanged(int beamEnergy) {
     beamEnergyInMilliJoules = beamEnergy;
-    JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential();
+    CalculateNormalizedVectorPotential();
 }
 
 void ImageDataModel::OnPulseDurationChanged(int pulseDurations) {
     pulseDurationInFemtoSeconds = pulseDurations;
-    JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential();
+    CalculateNormalizedVectorPotential();
 }
 
-void ImageDataModel::OnFocusImageFileSelected(const QString &filePath) {
-    // Clear the previous image
+void ImageDataModel::ClearDataFromPreviousImageFile() {
     focusImagePlot->clearGraphs();
     focusImagePlot_ProjectionX->clearGraphs();
     focusImagePlot_ProjectionY->clearGraphs();
     beamSpotEnergyFraction = 0;
     maxPixelValue = 0;
-
-    // Handle new image file
-    JKQtPlotter_HandleFocusImageFile(filePath);
+    thresholdPixelValue = 0;
+    totalPixelValueOfImage = 0;
+    pixelValueHistogram->Reset();
 }
 
-void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage() {
-    // Get pixel data from the image
-    auto pixelValueHistogram = new TH1D("PixelValueHistogram", "Pixel Value Histogram", 256, -0.5, 255.5);
-    TIFFGetField(focusImage, TIFFTAG_IMAGEWIDTH, &NPixelX);
-    TIFFGetField(focusImage, TIFFTAG_IMAGELENGTH, &NPixelY);
-    pixelDataFromImage = (uint32_t *) _TIFFmalloc(NPixelX * NPixelY * sizeof(uint32_t));
-    if (pixelDataFromImage != nullptr) {
-        if (TIFFReadRGBAImage(focusImage, NPixelX, NPixelY, pixelDataFromImage, 0)) {
-            for (size_t i = 0; i < NPixelX * NPixelY; i++) {
-                pixelDataFromImage[i] = pixelDataFromImage[i] % 256;
-                pixelValueHistogram->Fill(pixelDataFromImage[i]);
+void ImageDataModel::GetPixelArrayFromImageFile() {
+    focusImage = TIFFOpen(imageFilePath.toStdString().c_str(), "r");
+    if (focusImage) {
+        // Get pixel data from the image
+        TIFFGetField(focusImage, TIFFTAG_IMAGEWIDTH, &NPixelX);
+        TIFFGetField(focusImage, TIFFTAG_IMAGELENGTH, &NPixelY);
+        pixelArrayData = (uint32_t *) _TIFFmalloc(NPixelX * NPixelY * sizeof(uint32_t));
+        if (pixelArrayData != nullptr) {
+            if (TIFFReadRGBAImage(focusImage, NPixelX, NPixelY, pixelArrayData, 0)) {
+                for (size_t i = 0; i < NPixelX * NPixelY; i++) {
+                    pixelArrayData[i] = pixelArrayData[i] % 256;
+                    pixelValueHistogram->Fill(pixelArrayData[i]);
+                }
             }
         }
+        TIFFClose(focusImage);
     }
-    TIFFClose(focusImage);
+}
 
-    // Find the maximum and minimum pixel values
-    bool foundMaxBin = false;
+double ImageDataModel::FindBackgroundPixelValue() const {
     bool foundMinBin = false;
-    double MaxBin = -0.5;
     double MinBin = 255.5;
-    for (unsigned int i = pixelValueHistogram->GetSize() - 1; i > 0; i--) {
-        if (foundMaxBin) break;
-        if (pixelValueHistogram->GetBinContent(i) == 0) continue;
-        if (pixelValueHistogram->GetBinContent(i) > 0) {
-            MaxBin = pixelValueHistogram->GetBinCenter(i);
-            foundMaxBin = true;
-        }
-    }
-    for (unsigned int i = 0; i < pixelValueHistogram->GetSize(); i++) {
+    for (int i = 0; i < pixelValueHistogram->GetSize(); i++) {
         if (foundMinBin) break;
         if (pixelValueHistogram->GetBinContent(i) == 0) continue;
         if (pixelValueHistogram->GetBinContent(i) > 0) {
@@ -94,50 +81,61 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage() {
         }
     }
 
-    // Background subtraction
-    double totalPixelValueOfImage = 0;
-    for (unsigned int i = 0; i < NPixelX * NPixelY; i++) {
-        pixelDataFromImage[i] -= MinBin;
-        totalPixelValueOfImage += pixelDataFromImage[i];
-    }
-    for (unsigned int i = 0; i < pixelValueHistogram->GetSize(); i++) {
-        pixelValueHistogram->SetBinContent(i, pixelValueHistogram->GetBinContent(i) - MinBin);
-    }
-    MaxBin -= MinBin;
-    MinBin = 0;
-    thresholdPixelValue = (int) (0.95 * (MaxBin - MinBin) + MinBin);
+    return MinBin;
+}
 
-    // Calculate beam spot energy fraction
+void ImageDataModel::SubtractBackground(double& backgroundPixelValue) {
+    // This function performs 4 tasks at once (which goes against the Single Responsibility Principle but
+    // is done for performance reasons):
+    // 1. Subtract the background pixel value from the pixel array data.
+    // 2. Calculate the total pixel value of the image.
+    // 3. Calculate the maximum pixel value of the image.
+    // 4. Fill the pixel value histogram.
+
+    pixelValueHistogram->Reset();
+    totalPixelValueOfImage = 0;
+    maxPixelValue = 0;
+    for (unsigned int i = 0; i < NPixelX * NPixelY; i++) {
+        pixelArrayData[i] -= (uint32_t) backgroundPixelValue;
+        totalPixelValueOfImage += pixelArrayData[i];
+        pixelValueHistogram->Fill(pixelArrayData[i]);
+        if (pixelArrayData[i] > maxPixelValue) {
+            maxPixelValue = pixelArrayData[i];
+        }
+    }
+}
+
+void ImageDataModel::CalculateThresholdPixelValue(double& thresholdFraction) {
+    thresholdPixelValue = (int) (thresholdFraction * maxPixelValue);
+}
+
+void ImageDataModel::CalculateBeamSpotEnergyFraction() {
     double totalPixelValueOfBeamSpot = 0;
-    for (unsigned int i = 0; i < pixelValueHistogram->GetSize(); i++) {
-        if (pixelValueHistogram->GetBinCenter(i) >= MaxBin / 2.) {
+    for (int i = 0; i < pixelValueHistogram->GetSize(); i++) {
+        if (pixelValueHistogram->GetBinCenter(i) >= maxPixelValue / 2.) {
             totalPixelValueOfBeamSpot += pixelValueHistogram->GetBinContent(i) * pixelValueHistogram->GetBinCenter(i);
         }
     }
 
-    maxPixelValue = MaxBin;
     beamSpotEnergyFraction = totalPixelValueOfBeamSpot / totalPixelValueOfImage;
-    pixelValueHistogram->Delete();
-};
-
-void ImageDataModel::JKQtPlotter_HandleFocusImageFile_GetCentroidPosition() {
-    auto centroidHist = new TH2D("CentroidHistogram", "Centroid Histogram", NPixelX, 0, NPixelX, NPixelY, 0, NPixelY);
-    for (size_t i = 0; i < NPixelX * NPixelY; i++) {
-        if (pixelDataFromImage[i] >= thresholdPixelValue) {
-            centroidHist->Fill(i % NPixelX, i / NPixelX);
-        }
-    }
-    centroidNX = TMath::Nint(centroidHist->ProjectionX()->GetMean());
-    centroidNY = TMath::Nint(centroidHist->ProjectionY()->GetMean());
-    centroidX = -cameraSensorWidthInMicrometers / 2.0 + centroidNX * cameraSensorWidthInMicrometers / NPixelX;
-    centroidY = -cameraSensorHeightInMicrometers / 2.0 + centroidNY * cameraSensorHeightInMicrometers / NPixelY;
-    centroidHist->Delete();
 }
 
-void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotImage() {
+void ImageDataModel::GetBeamCenterPosition() {
+    auto profile2DOfPixelsAboveThreshold = new TH2D("PixelsWithValueAboveThreshold", "PixelsWithValueAboveThreshold", NPixelX, 0, NPixelX, NPixelY, 0, NPixelY);
+    for (size_t i = 0; i < NPixelX * NPixelY; i++) {
+        if (pixelArrayData[i] >= thresholdPixelValue) profile2DOfPixelsAboveThreshold->Fill(i % NPixelX, i / NPixelX);
+    }
+    centroidNX = TMath::Nint(profile2DOfPixelsAboveThreshold->ProjectionX()->GetMean());
+    centroidNY = TMath::Nint(profile2DOfPixelsAboveThreshold->ProjectionY()->GetMean());
+    centroidX = -cameraSensorWidthInMicrometers / 2.0 + centroidNX * cameraSensorWidthInMicrometers / NPixelX;
+    centroidY = -cameraSensorHeightInMicrometers / 2.0 + centroidNY * cameraSensorHeightInMicrometers / NPixelY;
+    profile2DOfPixelsAboveThreshold->Delete();
+}
+
+void ImageDataModel::DrawImage() {
     // Main graph for the 2D-image
     const auto FocusImage_DataStore = focusImagePlot->getDatastore();
-    size_t focusImage_Data = FocusImage_DataStore->addCopiedImageAsColumn(pixelDataFromImage, NPixelX, NPixelY, "DS_FocusImage");
+    size_t focusImage_Data = FocusImage_DataStore->addCopiedImageAsColumn(pixelArrayData, NPixelX, NPixelY, "DS_FocusImage");
     auto graph = new JKQTPColumnMathImage(focusImagePlot);
     graph->setTitle("");
     graph->setImageColumn(focusImage_Data);
@@ -167,7 +165,7 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotImage() {
     focusImagePlot->show();
 }
 
-void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
+void ImageDataModel::DrawProjections() {
     // Compute projection X-Y data
     double xmin, xmax, xmin_positive, ymin, ymax, ymin_positive;
     focusImagePlot->getGraph(0)->getXMinMax(xmin, xmax, xmin_positive);
@@ -183,12 +181,12 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
     for (int i = 0; i < NPixelX * NPixelY; i++) {
         if (i / NPixelX == centroidNY) {
             col = i % (int) NPixelX;
-            px_y_data[col] = pixelDataFromImage[i];
+            px_y_data[col] = pixelArrayData[i];
             px_x_data[col] = xmin + ((double) col) * stepSize_x;
         }
         if (i % NPixelX == centroidNX) {
             row = i / (int) NPixelX;
-            py_x_data[row] = pixelDataFromImage[i];
+            py_x_data[row] = pixelArrayData[i];
             py_y_data[row] = ymin + ((double) row) * stepSize_y;
         }
     }
@@ -270,7 +268,7 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_PlotProjections() {
     focusImagePlot->zoom(ymin, ymax, ymin, ymax);
 }
 
-void ImageDataModel::JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential() {
+void ImageDataModel::CalculateNormalizedVectorPotential() {
     // Look at Equation 7 in https://cds.cern.ch/record/2203636/files/1418884_207-230.pdf
     const double beamSpotEnergyInJoules = beamEnergyInMilliJoules * beamSpotEnergyFraction * 1e-3;
     const double beamCentralAreaInMicrometerSquared = TMath::Pi() * centroidXFWHMInMicrometers * centroidYFWHMInMicrometers / 4.0;
@@ -281,16 +279,28 @@ void ImageDataModel::JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential(
     emit NormalizedVectorPotentialCalculated(normalizedVectorPotential);
 }
 
-void ImageDataModel::JKQtPlotter_HandleFocusImageFile(const QString &filePath) {
-    focusImage = TIFFOpen(filePath.toStdString().c_str(), "r");
-    if (focusImage) {
-        JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage();
-        JKQtPlotter_HandleFocusImageFile_GetCentroidPosition();
-        JKQtPlotter_HandleFocusImageFile_PlotImage();
-        JKQtPlotter_HandleFocusImageFile_PlotProjections();
-        JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential();
+void ImageDataModel::ProcessImageData() {
+    double MinPxVal = FindBackgroundPixelValue();
+    SubtractBackground(MinPxVal);
+    double thresholdFraction = 0.95;
+    CalculateThresholdPixelValue(thresholdFraction);
+    CalculateBeamSpotEnergyFraction();
+    GetBeamCenterPosition();
+    DrawImage();
+    DrawProjections();
+    CalculateNormalizedVectorPotential();
+}
 
-        _TIFFfree(pixelDataFromImage);
-    }
+void ImageDataModel::OnFocusImageFileSelected(const QString &filePath) {
+    imageFilePath = filePath;
+    ClearDataFromPreviousImageFile();
+    GetPixelArrayFromImageFile();
+
+    ProcessImageData();
+
+    if (pixelArrayData) _TIFFfree(pixelArrayData);
+}
+
+void ImageDataModel::OnImageCaptured(uint32_t *pixelData, int Nx, int Ny) {
 }
 

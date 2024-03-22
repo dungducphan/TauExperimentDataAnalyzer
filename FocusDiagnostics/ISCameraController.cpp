@@ -6,7 +6,10 @@ isCameraConnected(false),
 selectedCameraName(""),
 gainInDB(0),
 exposureTimeInMicroseconds(0),
-autoCaptureTimer(new QTimer(this)) {
+autoCaptureTimer(new QTimer(this)),
+Nx(0),
+Ny(0),
+imageBuffer(nullptr) {
     connect(autoCaptureTimer, &QTimer::timeout, this, &ISCameraController::CaptureImage);
 }
 
@@ -136,4 +139,5 @@ void ISCameraController::CaptureImage() const {
     // FIXME
     // code to capture an image from the camera here
     std::cout << "Image is captured!" << std::endl;
+    emit ImageCaptured(imageBuffer, Nx, Ny);
 }

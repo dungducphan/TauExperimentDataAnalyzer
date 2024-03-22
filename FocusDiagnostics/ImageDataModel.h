@@ -33,11 +33,10 @@ public:
     void SetPulseDuration(double duration) { pulseDurationInFemtoSeconds = duration; }
 
 public slots:
-    void OnAcquireButtonClicked();
-    void OnModeChanged(int index);
     void OnBeamEnergyChanged(int beamEnergy);
     void OnPulseDurationChanged(int pulseDuration);
     void OnFocusImageFileSelected(const QString& filePath);
+    void OnImageCaptured(uint32_t* pixelData, int Nx, int Ny);
 
 signals:
     void BeamFWHMCalculated(double FWHMX, double FWHMY) const;
@@ -45,25 +44,35 @@ signals:
 
 private:
 
-    void JKQtPlotter_HandleFocusImageFile(const QString &filePath);
+    void ClearDataFromPreviousImageFile();
+    void GetPixelArrayFromImageFile();
+    void ProcessImageData();
+    [[nodiscard]] double FindBackgroundPixelValue() const;
+    void SubtractBackground(double&);
+    void CalculateThresholdPixelValue(double&);
+    void CalculateBeamSpotEnergyFraction();
+
     void JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage();
-    void JKQtPlotter_HandleFocusImageFile_GetCentroidPosition();
-    void JKQtPlotter_HandleFocusImageFile_PlotImage();
-    void JKQtPlotter_HandleFocusImageFile_PlotProjections();
-    void JKQtPlotter_HandleFocusImageFile_NormalizedVectorPotential();
+    void GetBeamCenterPosition();
+    void DrawImage();
+    void DrawProjections();
+    void CalculateNormalizedVectorPotential();
 
     double beamEnergyInMilliJoules;
     double beamSpotEnergyFraction;
     double pulseDurationInFemtoSeconds;
     double normalizedVectorPotential;
 
+    QString imageFilePath;
     double maxPixelValue;
-
+    TH1D* pixelValueHistogram;
     TIFF* focusImage;
-    uint32_t* pixelDataFromImage;
+    uint32_t* pixelArrayData;
     uint32_t NPixelX;
     uint32_t NPixelY;
     int thresholdPixelValue;
+    double totalPixelValueOfImage;
+
     const double cameraSensorWidthInMicrometers;
     const double cameraSensorHeightInMicrometers;
     JKQTPlotter* focusImagePlot;

@@ -32,6 +32,7 @@ public slots:
     void CommunicationRequestHandled(bool) const;
     void GainReadFromHardware(int) const;
     void ExposureTimeReadFromHardware(int) const;
+    void ImageCaptured(uint32_t*, int, int) const;
 
 private:
     bool isCameraConnected;
@@ -39,6 +40,10 @@ private:
     int gainInDB;
     int exposureTimeInMicroseconds;
     QTimer* autoCaptureTimer;
+
+    int Nx;
+    int Ny;
+    uint32_t* imageBuffer;
 
 private:
     void FindAvailableCameras() const;

@@ -18,10 +18,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## User settings
 
-### QWT paths
-set(QWT_INCLUDE_DIR /usr/local/qwt-6.3.0-dev/include)
-set(QWT_LIBRARY_DIR /usr/local/qwt-6.3.0-dev/lib)
-
 ### JKQtPlotter paths
 set(JKQTPLOTTER_CMAKE_MODULE_DIR /usr/local/lib/cmake/JKQTPlotter6)
 set(JKQTCommon6_DIR      ${JKQTPLOTTER_CMAKE_MODULE_DIR})
@@ -45,10 +41,6 @@ set(EPICS_INCLUDE_DIR
 ## Qt6 modules
 find_package(QT NAMES Qt6 COMPONENTS Core Gui Widgets PrintSupport Svg Xml OpenGL Charts REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Widgets PrintSupport Svg Xml OpenGL Charts REQUIRED)
-
-## Qwt
-include_directories(${QWT_INCLUDE_DIR})
-find_library(QWT NAMES qwt PATHS ${QWT_LIBRARY_DIR} REQUIRED)
 
 # CERN ROOT
 find_package(ROOT REQUIRED)

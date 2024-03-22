@@ -122,7 +122,6 @@ void Controller::ConnectSignalsAndSlots() {
     // DISPLAY MODE
     connect(view->ui->combobox_MODE, &QComboBox::currentIndexChanged, this, &Controller::OnModeChanged);
     connect(this, &Controller::ModeChanged, view, &FocusDiagnosticsMainWindow::OnModeChanged);
-    connect(this, &Controller::ModeChanged, imageDataModel, &ImageDataModel::OnModeChanged);
     connect(this, &Controller::ModeChanged, cameraController, &ISCameraController::OnModeChanged);
 
     // SEARCHING CAMERAS
@@ -160,6 +159,9 @@ void Controller::ConnectSignalsAndSlots() {
     connect(view->ui->button_FOCUS_IMAGE_AUTO_CAPTURE, &QPushButton::clicked, this, &Controller::OnAutoAcquisitionButtonClicked);
     connect(this, &Controller::FocusImageCaptureRequest, cameraController, &ISCameraController::OnFocusImageCaptureRequest);
     connect(this, &Controller::FocusImageAutoCaptureRequest, cameraController, &ISCameraController::OnFocusImageAutoCaptureRequest);
+
+    // IMAGE CAPTURED
+    connect(cameraController, &ISCameraController::ImageCaptured, imageDataModel, &ImageDataModel::OnImageCaptured);
 }
 
 void Controller::OnGainChangedFromSlider(int gain) {
