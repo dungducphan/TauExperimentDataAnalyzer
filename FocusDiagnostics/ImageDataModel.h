@@ -41,6 +41,7 @@ public slots:
 signals:
     void BeamFWHMCalculated(double FWHMX, double FWHMY) const;
     void NormalizedVectorPotentialCalculated(double A0) const;
+    void ImageProcessingCompleted() const;
 
 private:
 

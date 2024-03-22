@@ -75,6 +75,7 @@ void ISCameraController::Connect() {
 
     // in the READY state the camera will be initialized and properties will be available
     gst_element_set_state(source, GST_STATE_READY);
+    gst_element_set_state(pipeline_capture, GST_STATE_READY);
 
     std::cout << selectedCameraName.toStdString() << " is connected!" << std::endl;
     isCameraConnected = true;
@@ -170,18 +171,13 @@ void ISCameraController::OnFocusImageAutoCaptureRequest(bool autoCaptureEnabled)
 }
 
 GstFlowReturn ISCameraController::CaptureImageCallback(GstElement* sink, void* user_data) {
-    // Cast user_data back to an ISCameraController pointer
-    auto controller = static_cast<ISCameraController*>(user_data);
-
-    std::cout << "CaptureImageCallback called!" << std::endl;
+    auto cameraController = static_cast<ISCameraController*>(user_data);
 
     GstSample* sample = nullptr;
     /* Retrieve the buffer */
     g_signal_emit_by_name(sink, "pull-sample", &sample, nullptr);
 
-    if (sample) {
-        // we have a valid sample
-        // do things with the image here
+    if (sample) { // Successfully captured an image
         static guint frameCount = 0;
         int pixel_data = -1;
 
@@ -195,22 +191,15 @@ GstFlowReturn ISCameraController::CaptureImageCallback(GstElement* sink, void* u
                 return GST_FLOW_ERROR;
             }
 
-            // pointer to the image data
-            unsigned char* data = info.data;
+            emit cameraController->ImageBeingProcessed();
 
-            // Get the pixel value of the center pixel
-            int stride = video_info->finfo->bits / 8;
-            unsigned int pixel_offset = video_info->width / 2 * stride + video_info->width * video_info->height / 2 * stride;
-
-            /*  This is only one pixel when dealing with formats like BGRx
-                Pixel_data will consist out of
-                    pixel_offset   => B
-                    pixel_offset+1 => G
-                    pixel_offset+2 => R
-                    pixel_offset+3 => x
-             */
-
-            pixel_data = info.data[pixel_offset];
+            // Extract pixel data from the buffer
+            cameraController->imageBuffer = new uint32_t[video_info->width * video_info->height];
+            cameraController->Nx = video_info->width;
+            cameraController->Ny = video_info->height;
+            for (int i = 0; i < video_info->width * video_info->height; i++) {
+                cameraController->imageBuffer[i] = (uint32_t) info.data[i];
+            }
 
             gst_buffer_unmap(buffer, &info);
             gst_video_info_free(video_info);
@@ -227,7 +216,15 @@ GstFlowReturn ISCameraController::CaptureImageCallback(GstElement* sink, void* u
         gst_sample_unref(sample);
     }
 
-    emit controller->ImageCaptured(controller->imageBuffer, controller->Nx, controller->Ny);
+    emit cameraController->ImageCaptured(cameraController->imageBuffer, cameraController->Nx, cameraController->Ny);
 
     return GST_FLOW_OK;
+}
+
+void ISCameraController::OnImageBeingProcessed() const {
+    gst_element_set_state(pipeline_capture, GST_STATE_PAUSED);
+}
+
+void ISCameraController::OnImageProcessingCompleted() const {
+    gst_element_set_state(pipeline_capture, GST_STATE_PLAYING);
 }

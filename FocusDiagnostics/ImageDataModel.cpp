@@ -302,5 +302,20 @@ void ImageDataModel::OnFocusImageFileSelected(const QString &filePath) {
 }
 
 void ImageDataModel::OnImageCaptured(uint32_t *pixelData, int Nx, int Ny) {
+    ClearDataFromPreviousImageFile();
+    NPixelX = Nx;
+    NPixelY = Ny;
+    pixelArrayData = (uint32_t *) _TIFFmalloc(NPixelX * NPixelY * sizeof(uint32_t));
+    if (pixelArrayData != nullptr) {
+        for (size_t i = 0; i < NPixelX * NPixelY; i++) {
+            pixelArrayData[i] = pixelData[i];
+            pixelValueHistogram->Fill(pixelArrayData[i]);
+        }
+    }
+    ProcessImageData();
+    if (pixelArrayData) _TIFFfree(pixelArrayData);
+    usleep(500);
+
+    emit ImageProcessingCompleted();
 }
 

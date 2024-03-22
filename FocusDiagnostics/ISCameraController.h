@@ -30,6 +30,8 @@ public slots:
     void OnExposureTimeChanged(int exposureTime);
     void OnFocusImageCaptureRequest() const;
     void OnFocusImageAutoCaptureRequest(bool) const;
+    void OnImageBeingProcessed() const;
+    void OnImageProcessingCompleted() const;
     static GstFlowReturn CaptureImageCallback(GstElement*, void*);
 
     signals:
@@ -40,6 +42,7 @@ public slots:
     void ImageCaptured(uint32_t*, int, int) const;
     void FoundCameraGainRange(int, int) const;
     void FoundCameraExposureTimeRange(int, int) const;
+    void ImageBeingProcessed() const;
 
 private:
     bool isCameraConnected;
