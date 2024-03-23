@@ -542,7 +542,7 @@ void set_default_values(GstElement* source) {
     //    Locked: yes
     //    Default: 33333.000000
     //    Value: 1000.000000
-    set_float_property(source, "ExposureTime", 1000);
+    set_float_property(source, "ExposureTime", 100000);
 
     //    ExposureAutoReference	type: Integer
     //    Display Name: "Exposure Auto Reference"

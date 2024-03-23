@@ -60,9 +60,13 @@ void ISCameraController::OnCameraConnectionRequest() {
 void ISCameraController::Connect() {
     GError* err = nullptr;
     pipeline_capture = gst_parse_launch("tcambin name=source ! videoconvert ! appsink name=sink", &err);
-    source = gst_bin_get_by_name(GST_BIN(pipeline_capture), "source");
+    if (pipeline_capture == nullptr) {
+        printf("Could not create pipeline. Cause: %s\n", err->message);
+        return;
+    }
     const char* serial = selectedCameraSerial.toStdString().c_str();
     if (serial != nullptr) {
+        source = gst_bin_get_by_name(GST_BIN(pipeline_capture), "source");
         GValue val = {};
         g_value_init(&val, G_TYPE_STRING);
         g_value_set_static_string(&val, serial);
@@ -71,12 +75,14 @@ void ISCameraController::Connect() {
     }
     GstElement* sink = gst_bin_get_by_name(GST_BIN(pipeline_capture), "sink");
     g_object_set(G_OBJECT(sink), "emit-signals", TRUE, nullptr);
+
+    // Last argument is the user_data that will be passed to the callback function and cast as a pointer to
+    // this ISCameraController object
     g_signal_connect(sink, "new-sample", G_CALLBACK(this->CaptureImageCallback), this);
     gst_object_unref(sink);
 
     // in the READY state the camera will be initialized and properties will be available
     gst_element_set_state(source, GST_STATE_READY);
-    gst_element_set_state(pipeline_capture, GST_STATE_READY);
 
     std::cout << selectedCameraName.toStdString() << " is connected!" << std::endl;
     isCameraConnected = true;
@@ -85,7 +91,6 @@ void ISCameraController::Connect() {
     // Once the connection is established, get the current gain and exposure time from the camera,
     // and set all other properties to default values
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    list_properties(source);
     double minGain, maxGain, minExposureTime, maxExposureTime;
     get_float_property_range(source, "Gain", minGain, maxGain);
     get_float_property_range(source, "ExposureTime", minExposureTime, maxExposureTime);
@@ -97,6 +102,9 @@ void ISCameraController::Connect() {
     gainInDB = (int) get_float_property(source, "Gain");
     emit GainReadFromHardware(gainInDB);
     emit ExposureTimeReadFromHardware(exposureTimeInMicroseconds);
+
+    // Ready to capture images
+    gst_element_set_state(pipeline_capture, GST_STATE_READY);
 }
 
 void ISCameraController::OnCameraDisconnectionRequest() {
@@ -179,24 +187,16 @@ GstFlowReturn ISCameraController::CaptureImageCallback(GstElement* sink, void* u
     auto cameraController = static_cast<ISCameraController*>(user_data);
 
     GstSample* sample = nullptr;
-    /* Retrieve the buffer */
+    // Retrieve the buffer
     g_signal_emit_by_name(sink, "pull-sample", &sample, nullptr);
 
     if (sample) { // Successfully captured an image
-        static guint frameCount = 0;
-        int pixel_data = -1;
-
+        emit cameraController->ImageBeingProcessed();
         GstBuffer* buffer = gst_sample_get_buffer(sample);
         GstMapInfo info; // contains the actual image
         if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
             GstVideoInfo* video_info = gst_video_info_new();
-            if (!gst_video_info_from_caps(video_info, gst_sample_get_caps(sample))) {
-                // Could not parse video info (should not happen)
-                g_warning("Failed to parse video info");
-                return GST_FLOW_ERROR;
-            }
-
-            emit cameraController->ImageBeingProcessed();
+            if (!gst_video_info_from_caps(video_info, gst_sample_get_caps(sample))) return GST_FLOW_ERROR;
 
             // Extract pixel data from the buffer
             cameraController->imageBuffer = new uint32_t[video_info->width * video_info->height];
@@ -210,13 +210,6 @@ GstFlowReturn ISCameraController::CaptureImageCallback(GstElement* sink, void* u
             gst_video_info_free(video_info);
         }
 
-        GstClockTime timestamp = GST_BUFFER_PTS(buffer);
-        g_print("Captured frame %d, Pixel Value=%03d Timestamp=%" GST_TIME_FORMAT "            \r",
-                frameCount,
-                pixel_data,
-                GST_TIME_ARGS(timestamp));
-        frameCount++;
-
         // delete our reference so that gstreamer can handle the sample
         gst_sample_unref(sample);
     }
@@ -227,11 +220,14 @@ GstFlowReturn ISCameraController::CaptureImageCallback(GstElement* sink, void* u
 }
 
 void ISCameraController::OnImageBeingProcessed() const {
-    gst_element_set_state(pipeline_capture, GST_STATE_PAUSED);
+    gst_element_set_state(pipeline_capture, GST_STATE_READY);
 }
 
 void ISCameraController::OnImageProcessingCompleted() const {
     free(imageBuffer);
+    // FIXME
+    // possible sleep here to lower the frame rate
+    // usleep(500000);
     if (autoCaptureEnabled) gst_element_set_state(pipeline_capture, GST_STATE_PLAYING);
     if (!autoCaptureEnabled) gst_element_set_state(pipeline_capture, GST_STATE_READY);
 }

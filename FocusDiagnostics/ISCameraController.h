@@ -21,6 +21,8 @@ public:
     explicit ISCameraController(QObject* parent = nullptr);
     ~ISCameraController() override;
 
+    uint32_t* imageBuffer;
+
 public slots:
     void OnModeChanged(int index);
     void OnCameraConnectionRequest();
@@ -54,7 +56,6 @@ private:
 
     int Nx;
     int Ny;
-    uint32_t* imageBuffer;
 
     GstDeviceMonitor* monitor;
     GstElement* source;

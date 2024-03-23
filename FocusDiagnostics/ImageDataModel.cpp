@@ -304,23 +304,17 @@ void ImageDataModel::OnFocusImageFileSelected(const QString &filePath) {
 void ImageDataModel::OnImageCaptured(uint32_t *pixelData, int Nx, int Ny) {
     ClearDataFromPreviousImageFile();
 
-    // FIXME:
-    // In stead of using two-step copying, we can directly copy the pixelData (uint8_t) into pixelArrayData (uint32_t).
     NPixelX = Nx;
     NPixelY = Ny;
-    pixelArrayData = (uint32_t *) _TIFFmalloc(NPixelX * NPixelY * sizeof(uint32_t));
-    if (pixelArrayData != nullptr) {
-        for (size_t i = 0; i < NPixelX * NPixelY; i++) {
-            pixelArrayData[i] = pixelData[i];
-            pixelValueHistogram->Fill(pixelArrayData[i]);
-        }
+    if (pixelArrayData) free(pixelArrayData);
+    pixelArrayData = pixelData;
+    for (size_t i = 0; i < NPixelX * NPixelY; i++) {
+        pixelValueHistogram->Fill(pixelArrayData[i]);
     }
 
     ProcessImageData();
 
-    if (pixelArrayData) _TIFFfree(pixelArrayData);
-    usleep(500);
-
+    pixelArrayData = nullptr;
     emit ImageProcessingCompleted();
 }
 
