@@ -292,13 +292,15 @@ void ImageDataModel::ProcessImageData() {
 }
 
 void ImageDataModel::OnFocusImageFileSelected(const QString &filePath) {
-    imageFilePath = filePath;
-    ClearDataFromPreviousImageFile();
-    GetPixelArrayFromImageFile();
-
-    ProcessImageData();
-
-    if (pixelArrayData) _TIFFfree(pixelArrayData);
+    if (filePath.endsWith(".tiff")) {
+        imageFilePath = filePath;
+        ClearDataFromPreviousImageFile();
+        GetPixelArrayFromImageFile();
+        ProcessImageData();
+        if (pixelArrayData) _TIFFfree(pixelArrayData);
+    } else {
+        std::cerr << "Invalid file format. Please select a .tiff file." << std::endl;
+    }
 }
 
 void ImageDataModel::OnImageCaptured(uint32_t *pixelData, int Nx, int Ny) {
@@ -321,5 +323,10 @@ void ImageDataModel::OnImageCaptured(uint32_t *pixelData, int Nx, int Ny) {
 void ImageDataModel::OnImageProcessingCompleted() {
     std::cout << "Push analyzed data into the time series." << std::endl;
     // Using this library here: https://jkriege2.github.io/JKQtPlotter/_j_k_q_t_plotter_speed_test.html
+}
+
+void ImageDataModel::OnModeChanged(int index) {
+    ClearDataFromPreviousImageFile();
+    pixelArrayData = nullptr;
 }
 

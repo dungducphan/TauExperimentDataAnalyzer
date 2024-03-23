@@ -39,6 +39,7 @@ public slots:
     void OnExposureTimeChangedFromSpinBox();
     void OnExposureTimeReadFromHardware(int exposureTime);
     void OnFocusImageFileSelectButtonClicked();
+    void OnFocusImageFileLineEditFinished();
     void OnSingleAcquisitionButtonClicked() const;
     void OnAutoAcquisitionButtonClicked();
     void OnModeChanged(int index);

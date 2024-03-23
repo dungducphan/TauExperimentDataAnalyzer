@@ -38,6 +38,7 @@ public slots:
     void OnFocusImageFileSelected(const QString& filePath);
     void OnImageCaptured(uint32_t* pixelData, int Nx, int Ny);
     void OnImageProcessingCompleted();
+    void OnModeChanged(int index);
 
 signals:
     void BeamFWHMCalculated(double FWHMX, double FWHMY) const;

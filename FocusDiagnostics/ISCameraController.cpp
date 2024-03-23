@@ -13,6 +13,7 @@ imageBuffer(nullptr),
 monitor(nullptr),
 source(nullptr),
 pipeline_capture(nullptr),
+sink(nullptr),
 autoCaptureEnabled(false) {
 }
 
@@ -73,15 +74,14 @@ void ISCameraController::Connect() {
 
         g_object_set_property(G_OBJECT(source), "serial", &val);
     }
-    GstElement* sink = gst_bin_get_by_name(GST_BIN(pipeline_capture), "sink");
+    sink = gst_bin_get_by_name(GST_BIN(pipeline_capture), "sink");
     g_object_set(G_OBJECT(sink), "emit-signals", TRUE, nullptr);
 
     // Last argument is the user_data that will be passed to the callback function and cast as a pointer to
     // this ISCameraController object
     g_signal_connect(sink, "new-sample", G_CALLBACK(this->CaptureImageCallback), this);
-    gst_object_unref(sink);
 
-    // in the READY state the camera will be initialized and properties will be available
+    // Get source ready for setting properties
     gst_element_set_state(source, GST_STATE_READY);
 
     std::cout << selectedCameraName.toStdString() << " is connected!" << std::endl;
@@ -105,6 +105,7 @@ void ISCameraController::Connect() {
 
     // Ready to capture images
     gst_element_set_state(pipeline_capture, GST_STATE_READY);
+    gst_element_set_state(sink, GST_STATE_READY);
 }
 
 void ISCameraController::OnCameraDisconnectionRequest() {
@@ -118,6 +119,9 @@ void ISCameraController::OnCameraDisconnectionRequest() {
 }
 
 void ISCameraController::Disconnect() {
+    // Unref the sink
+    gst_object_unref(sink);
+
     // Stop the pipeline and frees all resources
     gst_element_set_state(pipeline_capture, GST_STATE_NULL);
 
@@ -189,7 +193,6 @@ GstFlowReturn ISCameraController::CaptureImageCallback(GstElement* sink, void* u
     GstSample* sample = nullptr;
     // Retrieve the buffer
     g_signal_emit_by_name(sink, "pull-sample", &sample, nullptr);
-
     if (sample) { // Successfully captured an image
         emit cameraController->ImageBeingProcessed();
         GstBuffer* buffer = gst_sample_get_buffer(sample);
@@ -228,6 +231,10 @@ void ISCameraController::OnImageProcessingCompleted() const {
     // FIXME
     // possible sleep here to lower the frame rate
     // usleep(500000);
-    if (autoCaptureEnabled) gst_element_set_state(pipeline_capture, GST_STATE_PLAYING);
-    if (!autoCaptureEnabled) gst_element_set_state(pipeline_capture, GST_STATE_READY);
+
+    if (autoCaptureEnabled) {
+        gst_element_set_state(pipeline_capture, GST_STATE_PLAYING);
+    } else {
+        gst_element_set_state(pipeline_capture, GST_STATE_READY);
+    }
 }

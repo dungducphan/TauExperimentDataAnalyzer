@@ -60,6 +60,7 @@ private:
     GstDeviceMonitor* monitor;
     GstElement* source;
     GstElement* pipeline_capture;
+    GstElement* sink;
     bool autoCaptureEnabled;
 
 private:

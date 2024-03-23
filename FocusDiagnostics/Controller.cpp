@@ -28,15 +28,15 @@ void Controller::Initialize() {
     view->ui->combobox_MODE->setCurrentIndex(displayMode);
 
     // FOCUS IMAGE TAB LAYOUT
-    imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForGraphs(true);
-    imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForSystem(true);
-    imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForText(true);
+    imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForGraphs(false);
+    imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForSystem(false);
+    imageDataModel->GetFocusImagePlot()->getPlotter()->setUseAntiAliasingForText(false);
     imageDataModel->GetFocusImagePlot()->setGrid(false);
     imageDataModel->GetFocusImagePlot()->setMousePositionShown(false);
 
-    imageDataModel->GetFocusImagePlot_ProjectionX()->getPlotter()->setUseAntiAliasingForGraphs(true);
-    imageDataModel->GetFocusImagePlot_ProjectionX()->getPlotter()->setUseAntiAliasingForSystem(true);
-    imageDataModel->GetFocusImagePlot_ProjectionX()->getPlotter()->setUseAntiAliasingForText(true);
+    imageDataModel->GetFocusImagePlot_ProjectionX()->getPlotter()->setUseAntiAliasingForGraphs(false);
+    imageDataModel->GetFocusImagePlot_ProjectionX()->getPlotter()->setUseAntiAliasingForSystem(false);
+    imageDataModel->GetFocusImagePlot_ProjectionX()->getPlotter()->setUseAntiAliasingForText(false);
     imageDataModel->GetFocusImagePlot_ProjectionX()->setGrid(false);
     imageDataModel->GetFocusImagePlot_ProjectionX()->setMousePositionShown(false);
     imageDataModel->GetFocusImagePlot_ProjectionX()->synchronizeXToMaster(imageDataModel->GetFocusImagePlot());
@@ -45,9 +45,9 @@ void Controller::Initialize() {
     imageDataModel->GetFocusImagePlot_ProjectionX()->getXAxis()->setShowZeroAxis(false);
     imageDataModel->GetFocusImagePlot_ProjectionX()->getYAxis()->setShowZeroAxis(false);
 
-    imageDataModel->GetFocusImagePlot_ProjectionY()->getPlotter()->setUseAntiAliasingForGraphs(true);
-    imageDataModel->GetFocusImagePlot_ProjectionY()->getPlotter()->setUseAntiAliasingForSystem(true);
-    imageDataModel->GetFocusImagePlot_ProjectionY()->getPlotter()->setUseAntiAliasingForText(true);
+    imageDataModel->GetFocusImagePlot_ProjectionY()->getPlotter()->setUseAntiAliasingForGraphs(false);
+    imageDataModel->GetFocusImagePlot_ProjectionY()->getPlotter()->setUseAntiAliasingForSystem(false);
+    imageDataModel->GetFocusImagePlot_ProjectionY()->getPlotter()->setUseAntiAliasingForText(false);
     imageDataModel->GetFocusImagePlot_ProjectionY()->setGrid(false);
     imageDataModel->GetFocusImagePlot_ProjectionY()->setMousePositionShown(false);
     imageDataModel->GetFocusImagePlot_ProjectionY()->synchronizeYToMaster(imageDataModel->GetFocusImagePlot());
@@ -123,6 +123,7 @@ void Controller::ConnectSignalsAndSlots() {
     connect(view->ui->combobox_MODE, &QComboBox::currentIndexChanged, this, &Controller::OnModeChanged);
     connect(this, &Controller::ModeChanged, view, &FocusDiagnosticsMainWindow::OnModeChanged);
     connect(this, &Controller::ModeChanged, cameraController, &ISCameraController::OnModeChanged);
+    connect(this, &Controller::ModeChanged, imageDataModel, &ImageDataModel::OnModeChanged);
 
     // SEARCHING CAMERAS
     connect(cameraController, &ISCameraController::CamerasFound, this, &Controller::OnCamerasFound);
@@ -145,6 +146,7 @@ void Controller::ConnectSignalsAndSlots() {
 
     // FOCUS IMAGE FILE SELECT
     connect(view->ui->button_FOCUS_IMAGE_FILE_SELECT, &QPushButton::clicked, this, &Controller::OnFocusImageFileSelectButtonClicked);
+    connect(view->ui->lineedit_FOCUS_IMAGE_FILENAME, &QLineEdit::editingFinished, this, &Controller::OnFocusImageFileLineEditFinished);
     connect(this, &Controller::FocusImageFileSelected, imageDataModel, &ImageDataModel::OnFocusImageFileSelected);
     connect(this, &Controller::FocusImageFileSelected, view, &FocusDiagnosticsMainWindow::OnFocusImageFileSelected);
 
@@ -264,6 +266,11 @@ void Controller::OnFocusImageFileSelectButtonClicked() {
     emit FocusImageFileSelected(filename);
 }
 
+void Controller::OnFocusImageFileLineEditFinished() {
+    auto filename = view->ui->lineedit_FOCUS_IMAGE_FILENAME->text();
+    emit FocusImageFileSelected(filename);
+}
+
 void Controller::OnBeamFWHMCalculated(double FWHMX, double FWHMY) {
     beamFWHMX = FWHMX;
     beamFWHMY = FWHMY;
@@ -295,6 +302,7 @@ void Controller::OnCommunicationRequestHandled(bool camConnect) {
 }
 
 void Controller::OnCameraSelected(const int &cameraIndex) {
+    if (cameraIndex < 0 || cameraIndex >= listOfAvailableCameras.size()) return;
     selectedCameraName = listOfAvailableCameras[cameraIndex].first.c_str();
     selectedCameraSerial = listOfAvailableCameras[cameraIndex].second.c_str();
     emit CameraSelected(cameraIndex);

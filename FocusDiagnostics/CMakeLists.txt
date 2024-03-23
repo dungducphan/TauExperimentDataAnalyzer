@@ -13,6 +13,8 @@ set(TARGET_SOURCES
         ISCameraHelpers.h
         ISCameraController.h
         ISCameraController.cpp
+        SpeedTestPlot.h
+        SpeedTestPlot.cpp
 )
 
 set(TARGET_NAME FocusDiagnostics)
