@@ -39,8 +39,14 @@ RUN mkdir -p /teda/build && \
 
 RUN cd /teda/TauExperimentDataAnalyzer && \
     git checkout dungducphan/feature_DockerBuildAndDeploy && \
+    git fetch && \
+    git pull && \
+    apt-get install -y libtiff-dev && \
     cd /teda/build && \
     cmake ../TauExperimentDataAnalyzer -GNinja
+
+RUN cd /teda/build && \
+    ninja
 
 
 
