@@ -56,6 +56,20 @@ void Controller::Initialize() {
     imageDataModel->GetFocusImagePlot_ProjectionY()->getXAxis()->setShowZeroAxis(false);
     imageDataModel->GetFocusImagePlot_ProjectionY()->getYAxis()->setShowZeroAxis(false);
 
+    // STAT PLOT
+    imageDataModel->GetNormalizedVectorPotentialTimeSeriesPlot()->getPlotter()->setUseAntiAliasingForGraphs(false);
+    imageDataModel->GetNormalizedVectorPotentialTimeSeriesPlot()->getPlotter()->setUseAntiAliasingForSystem(false);
+    imageDataModel->GetNormalizedVectorPotentialTimeSeriesPlot()->getPlotter()->setUseAntiAliasingForText(false);
+    imageDataModel->GetNormalizedVectorPotentialTimeSeriesPlot()->setGrid(false);
+    imageDataModel->GetNormalizedVectorPotentialTimeSeriesPlot()->setMousePositionShown(false);
+
+    imageDataModel->GetBeamSpotWaistFWHMTimeSeriesPlot()->getPlotter()->setUseAntiAliasingForGraphs(false);
+    imageDataModel->GetBeamSpotWaistFWHMTimeSeriesPlot()->getPlotter()->setUseAntiAliasingForSystem(false);
+    imageDataModel->GetBeamSpotWaistFWHMTimeSeriesPlot()->getPlotter()->setUseAntiAliasingForText(false);
+    imageDataModel->GetBeamSpotWaistFWHMTimeSeriesPlot()->setGrid(false);
+    imageDataModel->GetBeamSpotWaistFWHMTimeSeriesPlot()->setMousePositionShown(false);
+
+    // Layouts
     view->ui->widget_IMAGE->setLayout(new QGridLayout);
     imageDataModel->GetFocusImagePlot()->setParent(view->ui->widget_IMAGE);
     imageDataModel->GetFocusImagePlot_ProjectionX()->setParent(view->ui->widget_IMAGE);
@@ -68,6 +82,13 @@ void Controller::Initialize() {
     layout->setColumnStretch(1, 7);
     layout->setRowStretch(0, 7);
     layout->setRowStretch(1, 2);
+
+    view->ui->widget_STAT->setLayout(new QVBoxLayout);
+    imageDataModel->GetNormalizedVectorPotentialTimeSeriesPlot()->setParent(view->ui->widget_STAT);
+    imageDataModel->GetBeamSpotWaistFWHMTimeSeriesPlot()->setParent(view->ui->widget_STAT);
+    auto layout2 = dynamic_cast<QVBoxLayout*>(view->ui->widget_STAT->layout());
+    layout2->addWidget(imageDataModel->GetNormalizedVectorPotentialTimeSeriesPlot());
+    layout2->addWidget(imageDataModel->GetBeamSpotWaistFWHMTimeSeriesPlot());
 
     // Beam Energy
     beamEnergyInMilliJoules = view->ui->spinbox_BEAM_ENERGY->value();

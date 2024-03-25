@@ -29,6 +29,9 @@ public:
     [[nodiscard]] JKQTPlotter* GetFocusImagePlot_ProjectionX() const { return focusImagePlot_ProjectionX; }
     [[nodiscard]] JKQTPlotter* GetFocusImagePlot_ProjectionY() const { return focusImagePlot_ProjectionY; }
 
+    [[nodiscard]] JKQTPlotter* GetNormalizedVectorPotentialTimeSeriesPlot() const { return normalizedVectorPotentialTimeSeriesPlot; }
+    [[nodiscard]] JKQTPlotter* GetBeamSpotWaistFWHMTimeSeriesPlot() const { return beamSpotWaistFWHMTimeSeriesPlot; }
+
     void SetBeamEnergy(double energy) { beamEnergyInMilliJoules = energy; }
     void SetPulseDuration(double duration) { pulseDurationInFemtoSeconds = duration; }
 
@@ -55,7 +58,6 @@ private:
     void CalculateThresholdPixelValue(double&);
     void CalculateBeamSpotEnergyFraction();
 
-    void JKQtPlotter_HandleFocusImageFile_GetPixelDataFromImage();
     void GetBeamCenterPosition();
     void DrawImage();
     void DrawProjections();
@@ -87,4 +89,7 @@ private:
     double centroidYFWHMInMicrometers;
     JKQTPlotter* focusImagePlot_ProjectionX;
     JKQTPlotter* focusImagePlot_ProjectionY;
+
+    JKQTPlotter* normalizedVectorPotentialTimeSeriesPlot;
+    JKQTPlotter* beamSpotWaistFWHMTimeSeriesPlot;
 };

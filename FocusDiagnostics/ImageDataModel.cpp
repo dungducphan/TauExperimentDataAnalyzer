@@ -6,6 +6,8 @@ ImageDataModel::ImageDataModel(QObject* parent) :
         focusImagePlot(new JKQTPlotter),
         focusImagePlot_ProjectionX(new JKQTPlotter),
         focusImagePlot_ProjectionY(new JKQTPlotter),
+        normalizedVectorPotentialTimeSeriesPlot(new JKQTPlotter),
+        beamSpotWaistFWHMTimeSeriesPlot(new JKQTPlotter),
         pixelArrayData(nullptr),
         NPixelX(0),
         NPixelY(0),
@@ -25,6 +27,7 @@ ImageDataModel::ImageDataModel(QObject* parent) :
         maxPixelValue(0),
         pixelValueHistogram(new TH1D("PixelValueHistogram", "Pixel Value Histogram", 256, -0.5, 255.5)),
         totalPixelValueOfImage(0) {
+
 }
 
 ImageDataModel::~ImageDataModel() = default;

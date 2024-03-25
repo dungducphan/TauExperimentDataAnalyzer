@@ -228,9 +228,7 @@ void ISCameraController::OnImageBeingProcessed() const {
 
 void ISCameraController::OnImageProcessingCompleted() const {
     free(imageBuffer);
-    // FIXME
-    // possible sleep here to lower the frame rate
-    // usleep(500000);
+    usleep(100000);
 
     if (autoCaptureEnabled) {
         gst_element_set_state(pipeline_capture, GST_STATE_PLAYING);
