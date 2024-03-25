@@ -33,7 +33,7 @@ void ISCameraController::FindAvailableCameras() {
     for (GList* elem = devices; elem; elem = elem->next) {
         auto device = (GstDevice*) elem->data;
         GstStructure* metadataStruct = gst_device_get_properties(device);
-        std::string deviceName = std::format("(S/N {}) - {}-{}", gst_structure_get_string(metadataStruct, "serial"), gst_structure_get_string(metadataStruct, "model"), gst_structure_get_string(metadataStruct, "type"));
+        std::string deviceName = QString("%1 - (S/N %2)").arg(gst_structure_get_string(metadataStruct, "model"), gst_structure_get_string(metadataStruct, "serial")).toStdString();
         std::string deviceSerial = gst_structure_get_string(metadataStruct, "serial");
         listOfAvailableCameras.emplace_back(deviceName, deviceSerial);
         gst_structure_free(metadataStruct);

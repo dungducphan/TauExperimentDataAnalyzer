@@ -2,7 +2,6 @@
 
 // STD
 #include <iostream>
-#include <format>
 #include <cstdio>
 #include <cstring>
 #include <unistd.h>
