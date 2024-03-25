@@ -220,7 +220,7 @@
               </size>
              </property>
              <property name="text">
-              <string>Exposure Time</string>
+              <string>Exposure timeIndex</string>
              </property>
             </widget>
            </item>

@@ -16,8 +16,10 @@
 // JKQtPlotter
 #include <jkqtplotter/jkqtplotter.h>
 #include <jkqtplotter/graphs/jkqtpimage.h>
-#include "jkqtplotter/graphs/jkqtpfilledcurve.h"
-#include "jkqtplotter/graphs/jkqtpgeometric.h"
+#include <jkqtplotter/graphs/jkqtpfilledcurve.h>
+#include <jkqtplotter/graphs/jkqtpgeometric.h>
+
+#define N_DATAPOINTS 50
 
 class ImageDataModel : public QObject {
     Q_OBJECT
@@ -63,6 +65,8 @@ private:
     void DrawProjections();
     void CalculateNormalizedVectorPotential();
 
+    void CreateTimeSeriesGraphs();
+
     double beamEnergyInMilliJoules;
     double beamSpotEnergyFraction;
     double pulseDurationInFemtoSeconds;
@@ -92,4 +96,13 @@ private:
 
     JKQTPlotter* normalizedVectorPotentialTimeSeriesPlot;
     JKQTPlotter* beamSpotWaistFWHMTimeSeriesPlot;
+    JKQTPXYLineGraph* graph_a0;
+    JKQTPXYLineGraph* graph_beamSpotFWHMX;
+    JKQTPXYLineGraph* graph_beamSpotFWHMY;
+    size_t NDATA;
+    size_t N_DataPointsProcessed;
+    std::array<double, 5000> timeIndex;
+    std::array<double, 5000> normalizedVectorPotentialTimeSeries;
+    std::array<double, 5000> beamSpotWaistFWHMXTimeSeries;
+    std::array<double, 5000> beamSpotWaistFWHMYTimeSeries;
 };

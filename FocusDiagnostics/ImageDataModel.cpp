@@ -26,11 +26,65 @@ ImageDataModel::ImageDataModel(QObject* parent) :
         normalizedVectorPotential(0),
         maxPixelValue(0),
         pixelValueHistogram(new TH1D("PixelValueHistogram", "Pixel Value Histogram", 256, -0.5, 255.5)),
-        totalPixelValueOfImage(0) {
+        totalPixelValueOfImage(0),
+        NDATA(N_DATAPOINTS),
+        graph_a0(nullptr),
+        graph_beamSpotFWHMX(nullptr),
+        graph_beamSpotFWHMY(nullptr),
+        N_DataPointsProcessed(0) {
+    for (size_t i = 0; i < 50; i++) {
+        timeIndex[i] = (double) i;
+    }
+    normalizedVectorPotentialTimeSeries.fill(0);
+    beamSpotWaistFWHMXTimeSeries.fill(0);
+    beamSpotWaistFWHMYTimeSeries.fill(0);
 
+    CreateTimeSeriesGraphs();
 }
 
 ImageDataModel::~ImageDataModel() = default;
+
+void ImageDataModel::CreateTimeSeriesGraphs() {
+    size_t T_1 = normalizedVectorPotentialTimeSeriesPlot->getDatastore()->addColumn(timeIndex.data(), NDATA, "T_1");
+    size_t TS_A0 = normalizedVectorPotentialTimeSeriesPlot->getDatastore()->addColumn(normalizedVectorPotentialTimeSeries.data(), NDATA, "A0");
+    size_t T_2 = beamSpotWaistFWHMTimeSeriesPlot->getDatastore()->addColumn(timeIndex.data(), NDATA, "T_2");
+    size_t TS_SpotSizeX = beamSpotWaistFWHMTimeSeriesPlot->getDatastore()->addColumn(beamSpotWaistFWHMXTimeSeries.data(), NDATA, "FWHMX");
+    size_t TS_SpotSizeY = beamSpotWaistFWHMTimeSeriesPlot->getDatastore()->addColumn(beamSpotWaistFWHMYTimeSeries.data(), NDATA, "FWHMY");
+
+    graph_a0 = new JKQTPXYLineGraph(normalizedVectorPotentialTimeSeriesPlot);
+    graph_a0->setXColumn(T_1);
+    graph_a0->setYColumn(TS_A0);
+    graph_a0->setTitle(QObject::tr("Normalized Vector Potential"));
+    graph_a0->setLineWidth(1);
+    graph_a0->setSymbolType(JKQTPNoSymbol);
+    normalizedVectorPotentialTimeSeriesPlot->addGraph(graph_a0);
+
+    graph_beamSpotFWHMX = new JKQTPXYLineGraph(beamSpotWaistFWHMTimeSeriesPlot);
+    graph_beamSpotFWHMX->setXColumn(T_2);
+    graph_beamSpotFWHMX->setYColumn(TS_SpotSizeX);
+    graph_beamSpotFWHMX->setTitle(QObject::tr("Beam Spot FHWM X"));
+    graph_beamSpotFWHMX->setLineWidth(1);
+    graph_beamSpotFWHMX->setSymbolType(JKQTPNoSymbol);
+    beamSpotWaistFWHMTimeSeriesPlot->addGraph(graph_beamSpotFWHMX);
+
+    graph_beamSpotFWHMY = new JKQTPXYLineGraph(beamSpotWaistFWHMTimeSeriesPlot);
+    graph_beamSpotFWHMY->setXColumn(T_2);
+    graph_beamSpotFWHMY->setYColumn(TS_SpotSizeY);
+    graph_beamSpotFWHMY->setTitle(QObject::tr("Beam Spot FHWM Y"));
+    graph_beamSpotFWHMY->setLineWidth(1);
+    graph_beamSpotFWHMY->setSymbolType(JKQTPNoSymbol);
+    beamSpotWaistFWHMTimeSeriesPlot->addGraph(graph_beamSpotFWHMY);
+
+    // Scale the plot so the graph is contained
+    normalizedVectorPotentialTimeSeriesPlot->setX(timeIndex[0], timeIndex[NDATA - 1]);
+    normalizedVectorPotentialTimeSeriesPlot->setY(0,2);
+    beamSpotWaistFWHMTimeSeriesPlot->setX(timeIndex[0], timeIndex[NDATA - 1]);
+    beamSpotWaistFWHMTimeSeriesPlot->setY(0,2500);
+
+    // Show
+    normalizedVectorPotentialTimeSeriesPlot->show();
+    beamSpotWaistFWHMTimeSeriesPlot->show();
+}
 
 void ImageDataModel::OnBeamEnergyChanged(int beamEnergy) {
     beamEnergyInMilliJoules = beamEnergy;
@@ -324,8 +378,34 @@ void ImageDataModel::OnImageCaptured(uint32_t *pixelData, int Nx, int Ny) {
 }
 
 void ImageDataModel::OnImageProcessingCompleted() {
-    std::cout << "Push analyzed data into the time series." << std::endl;
-    // Using this library here: https://jkriege2.github.io/JKQtPlotter/_j_k_q_t_plotter_speed_test.html
+    if (N_DataPointsProcessed < NDATA) {
+        normalizedVectorPotentialTimeSeries[N_DataPointsProcessed] = normalizedVectorPotential;
+        beamSpotWaistFWHMXTimeSeries[N_DataPointsProcessed] = centroidXFWHMInMicrometers;
+        beamSpotWaistFWHMYTimeSeries[N_DataPointsProcessed] = centroidYFWHMInMicrometers;
+    } else {
+        // Move old data 1 slot to the left
+        for (size_t i = 0; i < NDATA - 1; i++) {
+            timeIndex[i] = timeIndex[i + 1];
+            normalizedVectorPotentialTimeSeries[i] = normalizedVectorPotentialTimeSeries[i + 1];
+            beamSpotWaistFWHMXTimeSeries[i] = beamSpotWaistFWHMXTimeSeries[i + 1];
+            beamSpotWaistFWHMYTimeSeries[i] = beamSpotWaistFWHMYTimeSeries[i + 1];
+        }
+
+        // Adding new data point
+        timeIndex[NDATA - 1] = (double) N_DataPointsProcessed;
+        normalizedVectorPotentialTimeSeries[NDATA - 1] = normalizedVectorPotential;
+        beamSpotWaistFWHMXTimeSeries[NDATA - 1] = centroidXFWHMInMicrometers;
+        beamSpotWaistFWHMYTimeSeries[NDATA - 1] = centroidYFWHMInMicrometers;
+    }
+
+    // Update range and redraw
+    normalizedVectorPotentialTimeSeriesPlot->setX(timeIndex[0], timeIndex[NDATA-1]);
+    normalizedVectorPotentialTimeSeriesPlot->redrawPlot();
+    beamSpotWaistFWHMTimeSeriesPlot->setX(timeIndex[0], timeIndex[NDATA-1]);
+    beamSpotWaistFWHMTimeSeriesPlot->redrawPlot();
+
+    // Update the number of data points processed
+    N_DataPointsProcessed++;
 }
 
 void ImageDataModel::OnModeChanged(int index) {

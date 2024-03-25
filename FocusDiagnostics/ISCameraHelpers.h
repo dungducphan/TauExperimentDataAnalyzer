@@ -532,7 +532,7 @@ void set_default_values(GstElement* source) {
     set_enum_property(source, "ExposureAuto", "Off");
 
     //    ExposureTime	type: Float
-    //    Display Name: "Exposure Time"
+    //    Display Name: "Exposure timeIndex"
     //    Category: Exposure
     //    Description: Sets the Exposure time when ExposureMode is Timed and ExposureAuto is Off. This controls the duration where the photosensitive cells are exposed to light.
     //    Unit: µs
