@@ -24,10 +24,10 @@ set(TARGET_DEPENDENCIES
         JKQTPlotter6::JKQTMath6
         JKQTPlotter6::JKQTPlotter6
         ${ROOT_LIBRARIES} Core Hist Tree MathCore ASImage
-        ${EPICS7_PVAccess}
-        ${EPICS7_PVData}
-        ${EPICS7_Com}
-        ${EPICS7_CA}
+        # ${EPICS7_PVAccess}
+        # ${EPICS7_PVData}
+        # ${EPICS7_Com}
+        # ${EPICS7_CA}
         TIFF::TIFF
         tcam
         tcam-property
