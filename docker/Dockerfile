@@ -28,8 +28,9 @@ RUN mkdir -p /root-system/build && \
     wget https://root.cern/download/root_v6.30.04.source.tar.gz && \
     tar -zvxf root_v6.30.04.source.tar.gz
 
-RUN cd /root-system/build && \
-    cmake ../root-6.30.04 -GNinja -DCMAKE_CXX_STANDARD=20 -Dmathmore=ON -Dminuit2=ON -Droot7=OFF -Dtmva=OFF -Dwebgui=OFF -Dx11=OFF -Dxrootd=OFF -Dgdml=OFF && \
+RUN apt-get install -y libtiff-dev && \
+    cd /root-system/build && \
+    cmake ../root-6.30.04 -GNinja -DCMAKE_CXX_STANDARD=20 -Dmathmore=ON -Droot7=OFF -Dtmva=OFF -Dwebgui=OFF -Dxrootd=OFF -Dgdml=OFF -Dasimage=ON && \
     ninja && \
     ninja install
 
@@ -40,13 +41,29 @@ RUN mkdir -p /teda/build && \
 RUN cd /teda/TauExperimentDataAnalyzer && \
     git checkout dungducphan/feature_DockerBuildAndDeploy && \
     git fetch && \
-    git pull && \
-    apt-get install -y libtiff-dev && \
+    git pull
+
+RUN cd /teda/TauExperimentDataAnalyzer/FocusDiagnostics/SDK && \
+    apt-get install -y ./tiscamera_1.1.0.4139_amd64_ubuntu_1804.deb && \
+    apt-get install -y ./tiscamera-dev_1.1.0.4139_amd64_ubuntu_1804.deb
+
+RUN cd /usr/local/bin && \
+    . ./thisroot.sh && \
     cd /teda/build && \
     cmake ../TauExperimentDataAnalyzer -GNinja
 
 RUN cd /teda/build && \
     ninja
+
+RUN apt-get install -y xauth && \
+    touch /root/.Xauthority
+
+RUN apt-get install -y gedit
+
+CMD ["/usr/bin/gedit"]
+
+
+
 
 
 
