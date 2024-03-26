@@ -58,9 +58,31 @@ RUN cd /teda/build && \
 RUN apt-get install -y xauth && \
     touch /root/.Xauthority
 
-RUN apt-get install -y gedit
+RUN apt-get remove -y vim cmake-curses-gui && \
+    apt-get autoremove -y && \
+    apt-get autoclean -y
 
-CMD ["/usr/bin/gedit"]
+FROM ubuntu:23.10 as teda-deploy
+
+COPY --from=teda-build /usr/local /usr/local
+COPY --from=teda-build /teda/build/FocusDiagnostics/FocusDiagnostics /usr/bin/FocusDiagnostics
+
+RUN apt-get update && \
+    apt-get install -y libzip4 libglib2.0-0 libgirepository-1.0-1 libusb-1.0-0 \
+    libgstreamer1.0-0 libxml2 libqt5widgets5 libqt5gui5 gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+    qtgstreamer-plugins-qt5
+
+COPY --from=teda-build /teda/TauExperimentDataAnalyzer/FocusDiagnostics/SDK/tiscamera-dev_1.1.0.4139_amd64_ubuntu_1804.deb /tiscamera-dev_1.1.0.4139_amd64_ubuntu_1804.deb
+COPY --from=teda-build /teda/TauExperimentDataAnalyzer/FocusDiagnostics/SDK/tiscamera_1.1.0.4139_amd64_ubuntu_1804.deb /tiscamera_1.1.0.4139_amd64_ubuntu_1804.deb
+RUN apt-get install -y /tiscamera_1.1.0.4139_amd64_ubuntu_1804.deb
+RUN apt-get install -y /tiscamera-dev_1.1.0.4139_amd64_ubuntu_1804.deb
+RUN rm /tiscamera-dev_1.1.0.4139_amd64_ubuntu_1804.deb
+RUN rm /tiscamera_1.1.0.4139_amd64_ubuntu_1804.deb
+
+RUN apt-get install -y qt6-base-dev libqt6svg6-dev
+
+CMD ["/usr/bin/FocusDiagnostics"]
 
 
 
