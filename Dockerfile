@@ -34,14 +34,10 @@ RUN apt-get install -y libtiff-dev && \
     ninja && \
     ninja install
 
-RUN mkdir -p /teda/build && \
-    cd /teda && \
-    git clone https://github.com/dungducphan/TauExperimentDataAnalyzer.git
+RUN mkdir -p /teda/TauExperimentDataAnalyzer
 
-RUN cd /teda/TauExperimentDataAnalyzer && \
-    git checkout dungducphan/feature_DockerBuildAndDeploy && \
-    git fetch && \
-    git pull
+COPY CMakeLists.txt /teda/TauExperimentDataAnalyzer/CMakeLists.txt
+COPY FocusDiagnostics /teda/TauExperimentDataAnalyzer/FocusDiagnostics
 
 RUN cd /teda/TauExperimentDataAnalyzer/FocusDiagnostics/SDK && \
     apt-get install -y ./tiscamera_1.1.0.4139_amd64_ubuntu_1804.deb && \
@@ -49,6 +45,7 @@ RUN cd /teda/TauExperimentDataAnalyzer/FocusDiagnostics/SDK && \
 
 RUN cd /usr/local/bin && \
     . ./thisroot.sh && \
+    mkdir -p /teda/build && \
     cd /teda/build && \
     cmake ../TauExperimentDataAnalyzer -GNinja
 
