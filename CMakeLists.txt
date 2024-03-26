@@ -39,8 +39,8 @@ set(JKQTPlotter6_DIR     ${JKQTPLOTTER_CMAKE_MODULE_DIR})
 #----------------------------------------------------------------------------------------------------------------------#
 
 ## Qt6 modules
-find_package(QT NAMES Qt6 COMPONENTS Core Gui Widgets PrintSupport Svg Xml OpenGL Charts REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Widgets PrintSupport Svg Xml OpenGL Charts REQUIRED)
+find_package(QT NAMES Qt6 COMPONENTS Core Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Widgets REQUIRED)
 
 # CERN ROOT
 find_package(ROOT REQUIRED)
