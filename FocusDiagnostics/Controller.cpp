@@ -310,6 +310,8 @@ void Controller::OnCamerasFound(const std::vector<std::pair<std::string, std::st
 }
 
 void Controller::OnCameraConnectionButtonClicked() const {
+    if (listOfAvailableCameras.empty()) return;
+
     if (!isCameraConnected) {
         emit CameraConnectionRequest();
     } else {
