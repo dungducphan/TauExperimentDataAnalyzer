@@ -77,9 +77,9 @@ void ImageDataModel::CreateTimeSeriesGraphs() {
 
     // Scale the plot so the graph is contained
     normalizedVectorPotentialTimeSeriesPlot->setX(timeIndex[0], timeIndex[NDATA - 1]);
-    normalizedVectorPotentialTimeSeriesPlot->setY(0,2);
+    normalizedVectorPotentialTimeSeriesPlot->setY(0,3);
     beamSpotWaistFWHMTimeSeriesPlot->setX(timeIndex[0], timeIndex[NDATA - 1]);
-    beamSpotWaistFWHMTimeSeriesPlot->setY(0,2500);
+    beamSpotWaistFWHMTimeSeriesPlot->setY(0,30);
 
     // Show
     normalizedVectorPotentialTimeSeriesPlot->show();
