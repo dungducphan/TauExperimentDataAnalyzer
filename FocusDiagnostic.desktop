@@ -1,0 +1,7 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=FocusingDiagnostics
+Exec=/home/ut3daq/Applications/TEDA/TauExperimentDataAnalyzer/cmake-build-release/FocusDiagnostics/FocusDiagnostics
+Icon=/home/ut3daq/Applications/TEDA/TauExperimentDataAnalyzer/FocusDiagnostics/Resources/Icons/icons8-laser-48.png
+Type=Application
+Categories="ControlSystem";
