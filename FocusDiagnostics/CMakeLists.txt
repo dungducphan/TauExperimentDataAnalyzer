@@ -1,3 +1,29 @@
+# DEPENDENCIES
+
+### JKQtPlotter paths
+set(JKQTPLOTTER_CMAKE_MODULE_DIR /usr/local/lib/cmake/JKQTPlotter6)
+set(JKQTCommon6_DIR      ${JKQTPLOTTER_CMAKE_MODULE_DIR})
+set(JKQTMath6_DIR        ${JKQTPLOTTER_CMAKE_MODULE_DIR})
+set(JKQTMathText6_DIR    ${JKQTPLOTTER_CMAKE_MODULE_DIR})
+set(JKQTPlotter6_DIR     ${JKQTPLOTTER_CMAKE_MODULE_DIR})
+
+## JKQtPlotter
+find_package(JKQTCommon6        REQUIRED)
+find_package(JKQTMathText6      REQUIRED)
+find_package(JKQTMath6          REQUIRED)
+find_package(JKQTPlotter6       REQUIRED)
+
+## Qt6 modules
+find_package(QT NAMES Qt6 COMPONENTS Core Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Widgets REQUIRED)
+
+## CERN ROOT
+find_package(ROOT REQUIRED)
+include(${ROOT_USE_FILE})
+
+## TinyTIFF
+find_package(TIFF REQUIRED)
+
 # Target sources and build options
 include_directories(/usr/include/gstreamer-1.0 /usr/include/glib-2.0 /usr/lib/x86_64-linux-gnu/glib-2.0/include)
 
@@ -24,10 +50,6 @@ set(TARGET_DEPENDENCIES
         JKQTPlotter6::JKQTMath6
         JKQTPlotter6::JKQTPlotter6
         ${ROOT_LIBRARIES} Core Hist Tree MathCore ASImage
-        # ${EPICS7_PVAccess}
-        # ${EPICS7_PVData}
-        # ${EPICS7_Com}
-        # ${EPICS7_CA}
         TIFF::TIFF
         tcam
         tcam-property
