@@ -1,12 +1,12 @@
 #include <QApplication>
 
-#include <CameraControl.h>
+#include <CameraControl_Controller.h>
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
-    auto window = new CameraControl();
-    window->show();
+    auto Controller = new CameraControl_Controller();
+    Controller->show();
 
     return QApplication::exec();
 }

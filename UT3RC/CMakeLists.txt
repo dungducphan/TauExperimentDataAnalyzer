@@ -59,9 +59,14 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CameraControlWidget)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/MainWindow)
 set(TARGET_SOURCES
         main.cpp
+        CameraControlWidget/CameraTypes.h
         CameraControlWidget/CameraControl.cpp
         CameraControlWidget/CameraControl.h
         CameraControlWidget/CameraControl.ui
+        CameraControlWidget/CameraControl_Controller.cpp
+        CameraControlWidget/CameraControl_Controller.h
+        CameraControlWidget/EPICSDataInterface.cpp
+        CameraControlWidget/EPICSDataInterface.h
         MainWindow/RCMainWindow.cpp
         MainWindow/RCMainWindow.h
         MainWindow/RCMainWindow.ui
