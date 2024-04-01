@@ -1,12 +1,17 @@
 #pragma once
 
+// Qt6 LIBS
 #include <QObject>
+#include <QTimer>
 
+// JKQTPlotter LIBS
+#include <jkqtplotter.h>
+
+// CUSTOM LIBS
 #include <CameraControl.h>
 #include <ui_CameraControl.h>
 #include <EPICSDataInterface.h>
 #include <CameraTypes.h>
-
 
 class CameraControl_Controller : public QObject {
     Q_OBJECT
@@ -17,12 +22,13 @@ public:
     void show();
 
 public slots:
-    void CameraConnectRequested();
-    void SelectedCameraChanged(int index);
+    void OnCameraConnectButtonClicked();
+    void OnSelectedCameraChanged(int index);
+    void OnCameraPVSubscriptionCompleted();
 
 signals:
-    void OnCameraConnectRequested();
-    void OnSelectedCameraChanged(int index);
+    void CameraConnectRequested();
+    void SelectedCameraChanged(int index);
 
 private:
     void Init();
@@ -32,4 +38,6 @@ private:
     CameraControl* cameraControl;
     EPICSDataInterface* epicsDataInterface;
     CameraIndex_t selectedCamera;
+
+    QTimer* timer;
 };

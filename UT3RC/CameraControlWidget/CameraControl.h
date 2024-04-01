@@ -2,6 +2,8 @@
 
 #include <QWidget>
 
+#include <jkqtplotter.h>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class CameraControl; }
 QT_END_NAMESPACE
@@ -14,7 +16,9 @@ public:
     ~CameraControl() override;
 
     Ui::CameraControl* GetUI() { return ui; }
+    JKQTPlotter* GetImagePlotter() { return imagePlotter; }
 
 private:
     Ui::CameraControl *ui;
+    JKQTPlotter* imagePlotter;
 };

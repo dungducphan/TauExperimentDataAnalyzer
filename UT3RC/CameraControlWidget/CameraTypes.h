@@ -3,6 +3,9 @@
 #include <vector>
 #include <string>
 
+// FIXME:
+// At the moment, developers need to modify this file to add or remove cameras.
+
 typedef enum {
     k_ADSIMDETECTOR_1,
     k_ADSIMDETECTOR_2,
