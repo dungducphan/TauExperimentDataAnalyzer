@@ -36,23 +36,35 @@ set(EPICS_INCLUDE_DIR
 )
 
 include_directories(${EPICS_INCLUDE_DIR})
-find_library(EPICS7_Com        NAMES Com        PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
-find_library(EPICS7_CA         NAMES ca         PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
-find_library(EPICS7_PVAccess   NAMES pvAccess   PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
-find_library(EPICS7_PVData     NAMES pvData     PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
-find_library(EPICS7_PVDatabase NAMES pvDatabase PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
-find_library(EPICS7_PVAClient  NAMES pvaClient  PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_Com             NAMES Com        PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_CA              NAMES ca         PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_PVAccess        NAMES pvAccess   PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_PVAccessCA      NAMES pvAccessCA PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_PVData          NAMES pvData     PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_PVDatabase      NAMES pvDatabase PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
+find_library(EPICS7_PVAClient       NAMES pvaClient  PATHS ${EPICS_LIBRARY_DIR} REQUIRED)
 
 ## QE
 set(QEFRAMEWORK_BASE_DIR /home/ubuntu/Applications/qtepics/qeframework)
 set(QEFRAMEWORK_LIBRARY_DIR ${QEFRAMEWORK_BASE_DIR}/lib/linux-x86_64)
 set(QEFRAMEWORK_INCLUDE_DIR ${QEFRAMEWORK_BASE_DIR}/include)
+find_library(QEFramework       NAMES QEFramework  PATHS ${QEFRAMEWORK_LIBRARY_DIR} REQUIRED)
+
+include_directories(${QEFRAMEWORK_INCLUDE_DIR})
 
 ########################################################################################################################
 # TARGET
 ########################################################################################################################
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CameraControlWidget)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/MainWindow)
 set(TARGET_SOURCES
         main.cpp
+        CameraControlWidget/CameraControl.cpp
+        CameraControlWidget/CameraControl.h
+        CameraControlWidget/CameraControl.ui
+        MainWindow/RCMainWindow.cpp
+        MainWindow/RCMainWindow.h
+        MainWindow/RCMainWindow.ui
 )
 
 set(TARGET_NAME UT3RC)
@@ -65,7 +77,14 @@ set(TARGET_DEPENDENCIES
         JKQTPlotter6::JKQTPlotter6
         ${ROOT_LIBRARIES} Core Hist Tree MathCore ASImage
         TIFF::TIFF
-        QEFramework
+        ${QEFramework}
+        ${EPICS7_PVDatabase}
+        ${EPICS7_PVAClient}
+        ${EPICS7_PVAccess}
+        ${EPICS7_PVAccessCA}
+        ${EPICS7_PVData}
+        ${EPICS7_Com}
+        ${EPICS7_CA}
 )
 
 qt_add_executable(${TARGET_NAME} MANUAL_FINALIZATION ${TARGET_SOURCES} resources.qrc)
