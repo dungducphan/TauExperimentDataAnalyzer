@@ -1,13 +1,12 @@
-//
-// Created by ubuntu on 4/1/24.
-//
-
-#ifndef TAUEXPERIMENTDATAANALYZER_RCMAINWINDOW_H
-#define TAUEXPERIMENTDATAANALYZER_RCMAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 
 #include <jkqtplotter.h>
+#include <graphs/jkqtpimage.h>
+
+#include <epicsEvent.h>
+#include <pva/client.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class RCMainWindow; }
@@ -18,8 +17,12 @@ Q_OBJECT
 
 public:
     explicit RCMainWindow(QWidget *parent = nullptr);
-
     ~RCMainWindow() override;
+
+    [[nodiscard]] Ui::RCMainWindow* GetUi() const { return ui; }
+
+    public slots:
+    void OnImageReceived(const epics::pvData::shared_vector<const uint8_t>& image, const unsigned int& monID, const unsigned int& imageCounter);
 
 private:
     Ui::RCMainWindow *ui;
@@ -30,8 +33,8 @@ private:
     JKQTPlotter* wfsIntensityPlotter;
     JKQTPlotter* wfsDensityPlotter;
 
+private:
     void UIConfig();
+    void UpdatePlotter(JKQTPlotter* plotter, const epics::pvData::shared_vector<const uint8_t>& image, const unsigned int &monID, const unsigned int& imageCounter);
 };
 
-
-#endif //TAUEXPERIMENTDATAANALYZER_RCMAINWINDOW_H

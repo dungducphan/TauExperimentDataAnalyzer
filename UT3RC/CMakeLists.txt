@@ -63,10 +63,10 @@ set(TARGET_SOURCES
         MainWindow/RCMainWindow.cpp
         MainWindow/RCMainWindow.h
         MainWindow/RCMainWindow.ui
-        Controller/RCController.cpp
-        Controller/RCController.h
-        EPICS/DataGrabber.cpp
-        EPICS/DataGrabber.h
+        MainWindow/RCController.cpp
+        MainWindow/RCController.h
+        MainWindow/DataGrabber.cpp
+        MainWindow/DataGrabber.h
 )
 
 set(TARGET_NAME UT3RC)

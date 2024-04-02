@@ -1,6 +1,6 @@
 #include <QApplication>
 
-#include <RCController.h>
+#include "MainWindow/RCController.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);

@@ -3,6 +3,7 @@
 #include <QObject>
 
 #include <RCMainWindow.h>
+#include "UT3RC_autogen/include/ui_RCMainWindow.h"
 #include <DataGrabber.h>
 
 class RCController : public QObject {

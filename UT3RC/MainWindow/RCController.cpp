@@ -10,6 +10,7 @@ dataGrabber(new DataGrabber()) {
 
 RCController::~RCController() {
     delete mainWindow;
+    delete dataGrabber;
 }
 
 void RCController::ShowView() {
@@ -17,7 +18,7 @@ void RCController::ShowView() {
 }
 
 void RCController::ConnectSignalsAndSlots() {
-
+    connect(dataGrabber, &DataGrabber::ImageReceived, mainWindow, &RCMainWindow::OnImageReceived);
 }
 
 void RCController::ConnectToIOCs() {
