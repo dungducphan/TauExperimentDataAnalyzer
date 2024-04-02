@@ -1,4 +1,6 @@
 <RCC>
     <qresource prefix="/icons">
+        <file>Resources/Image/bkgd.jpg</file>
+        <file>Resources/Image/bkgd-landscape.jpg</file>
     </qresource>
 </RCC>

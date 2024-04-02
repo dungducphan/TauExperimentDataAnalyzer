@@ -7,6 +7,7 @@
 
 #include <QMainWindow>
 
+#include <jkqtplotter.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class RCMainWindow; }
@@ -22,6 +23,14 @@ public:
 
 private:
     Ui::RCMainWindow *ui;
+
+    JKQTPlotter* especPointingPlotter;
+    JKQTPlotter* especSpectrumLEPlotter;
+    JKQTPlotter* especSpectrumHEPlotter;
+    JKQTPlotter* wfsIntensityPlotter;
+    JKQTPlotter* wfsDensityPlotter;
+
+    void UIConfig();
 };
 
 

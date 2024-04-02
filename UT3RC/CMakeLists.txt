@@ -55,21 +55,18 @@ include_directories(${QEFRAMEWORK_INCLUDE_DIR})
 ########################################################################################################################
 # TARGET
 ########################################################################################################################
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CameraControlWidget)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Controller)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/MainWindow)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/EPICS)
 set(TARGET_SOURCES
         main.cpp
-        CameraControlWidget/CameraTypes.h
-        CameraControlWidget/CameraControl.cpp
-        CameraControlWidget/CameraControl.h
-        CameraControlWidget/CameraControl.ui
-        CameraControlWidget/CameraControl_Controller.cpp
-        CameraControlWidget/CameraControl_Controller.h
-        CameraControlWidget/EPICSDataInterface.cpp
-        CameraControlWidget/EPICSDataInterface.h
         MainWindow/RCMainWindow.cpp
         MainWindow/RCMainWindow.h
         MainWindow/RCMainWindow.ui
+        Controller/RCController.cpp
+        Controller/RCController.h
+        EPICS/DataGrabber.cpp
+        EPICS/DataGrabber.h
 )
 
 set(TARGET_NAME UT3RC)
