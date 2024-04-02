@@ -24,11 +24,15 @@ public:
 public slots:
     void OnCameraConnectButtonClicked();
     void OnSelectedCameraChanged(int index);
-    void OnCameraPVSubscriptionCompleted();
+    void OnMonitorThreadStarted();
+    void OnMonitorThreadFinished();
 
 signals:
     void CameraConnectRequested();
+    void CameraDisconnectRequested();
     void SelectedCameraChanged(int index);
+    void UpdateUIOnMonitorThreadStarted();
+    void UpdateUIOnMonitorThreadFinished();
 
 private:
     void Init();
@@ -38,6 +42,5 @@ private:
     CameraControl* cameraControl;
     EPICSDataInterface* epicsDataInterface;
     CameraIndex_t selectedCamera;
-
-    QTimer* timer;
+    bool isMonitoring;
 };

@@ -2,6 +2,7 @@
 
 // STD LIBS
 #include <iostream>
+#include <thread>
 
 // Qt6 LIBS
 #include <QObject>
@@ -20,16 +21,25 @@ public:
     ~EPICSDataInterface() override;
 
 public slots:
-    void CameraConnectRequested();
-    void SelectedCameraChanged(int index);
-    void UpdateImage();
+    void OnCameraConnectRequested();
+    void OnCameraDisconnectRequested();
+    void OnSelectedCameraChanged(int index);
 
 signals:
-    void CameraPVSubscriptionCompleted();
+    void MonitorThreadStarted();
+    void MonitorThreadFinished();
+    void ImageReceived(const epics::pvData::shared_vector<const uint8_t>& image, const unsigned int& imageCounter);
+
+private:
+    void MonitorPV();
 
 private:
     CameraIndex_t selectedCamera;
     pvac::ClientProvider* provider;
     pvac::ClientChannel* channel;
     pvac::MonitorSync* mon;
+    unsigned int imageCounter;
+
+    std::thread* monitorThread;
+    bool isMonitoring;
 };

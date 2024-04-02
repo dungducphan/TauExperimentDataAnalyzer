@@ -5,7 +5,7 @@ QObject(parent),
 cameraControl(new CameraControl(parent)),
 epicsDataInterface(new EPICSDataInterface(parent)),
 selectedCamera(CameraIndex_t::k_NOCAMERA),
-timer(new QTimer(this)) {
+isMonitoring(false) {
     Init();
     ConnectSignalsAndSlots();
 }
@@ -31,19 +31,35 @@ void CameraControl_Controller::Init() {
     cameraControl->GetImagePlotter()->setGrid(false);
     cameraControl->GetImagePlotter()->setMousePositionShown(false);
 
-    // QTimer for camera image update
-    timer->setInterval(2000);
+    // Initial state of the UI
+    if (isMonitoring) {
+        cameraControl->GetUI()->pushButton_CAMERACONNECT->setText("Disconnect");
+        cameraControl->GetUI()->pushButton_CAMERACONNECT->setStyleSheet("background-color: red");
+    } else {
+        cameraControl->GetUI()->pushButton_CAMERACONNECT->setText("Connect");
+        cameraControl->GetUI()->pushButton_CAMERACONNECT->setStyleSheet("background-color: green");
+    }
 }
 
 void CameraControl_Controller::ConnectSignalsAndSlots() {
     connect(cameraControl->GetUI()->comboBox_CAMERASELECT, &QComboBox::currentIndexChanged, this,
             &CameraControl_Controller::OnSelectedCameraChanged);
-    connect(this, &CameraControl_Controller::SelectedCameraChanged, epicsDataInterface, &EPICSDataInterface::SelectedCameraChanged);
+    connect(this, &CameraControl_Controller::SelectedCameraChanged, epicsDataInterface,
+            &EPICSDataInterface::OnSelectedCameraChanged);
 
     connect(cameraControl->GetUI()->pushButton_CAMERACONNECT, &QPushButton::clicked, this, &CameraControl_Controller::OnCameraConnectButtonClicked);
-    connect(this, &CameraControl_Controller::CameraConnectRequested, epicsDataInterface, &EPICSDataInterface::CameraConnectRequested);
-    connect(epicsDataInterface, &EPICSDataInterface::CameraPVSubscriptionCompleted, this, &CameraControl_Controller::OnCameraPVSubscriptionCompleted);
-    connect(timer, &QTimer::timeout, epicsDataInterface, &EPICSDataInterface::UpdateImage);
+    connect(this, &CameraControl_Controller::CameraConnectRequested, epicsDataInterface,
+            &EPICSDataInterface::OnCameraConnectRequested);
+    connect(this, &CameraControl_Controller::CameraDisconnectRequested, epicsDataInterface,
+            &EPICSDataInterface::OnCameraDisconnectRequested);
+    connect(epicsDataInterface, &EPICSDataInterface::MonitorThreadStarted, this,
+            &CameraControl_Controller::OnMonitorThreadStarted);
+    connect(epicsDataInterface, &EPICSDataInterface::MonitorThreadFinished, this,
+            &CameraControl_Controller::OnMonitorThreadFinished);
+    connect(this, &CameraControl_Controller::UpdateUIOnMonitorThreadStarted, cameraControl, &CameraControl::OnMonitorThreadStarted);
+    connect(this, &CameraControl_Controller::UpdateUIOnMonitorThreadFinished, cameraControl, &CameraControl::OnMonitorThreadFinished);
+
+    connect(epicsDataInterface, &EPICSDataInterface::ImageReceived, cameraControl, &CameraControl::OnImageReceived);
 }
 
 void CameraControl_Controller::OnCameraConnectButtonClicked() {
@@ -51,7 +67,9 @@ void CameraControl_Controller::OnCameraConnectButtonClicked() {
         selectedCamera = static_cast<CameraIndex_t>(cameraControl->GetUI()->comboBox_CAMERASELECT->currentIndex());
         emit SelectedCameraChanged(selectedCamera);
     }
-    emit CameraConnectRequested();
+    if (selectedCamera != CameraIndex_t::k_NOCAMERA) {
+        isMonitoring ? emit CameraDisconnectRequested() : emit CameraConnectRequested();
+    }
 }
 
 void CameraControl_Controller::OnSelectedCameraChanged(int index) {
@@ -59,6 +77,12 @@ void CameraControl_Controller::OnSelectedCameraChanged(int index) {
     emit SelectedCameraChanged(selectedCamera);
 }
 
-void CameraControl_Controller::OnCameraPVSubscriptionCompleted() {
-    timer->start();
+void CameraControl_Controller::OnMonitorThreadStarted() {
+    isMonitoring = true;
+    emit UpdateUIOnMonitorThreadStarted();
+}
+
+void CameraControl_Controller::OnMonitorThreadFinished() {
+    isMonitoring = false;
+    emit UpdateUIOnMonitorThreadFinished();
 }
