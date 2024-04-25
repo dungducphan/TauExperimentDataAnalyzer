@@ -12,7 +12,6 @@
 #include <TCanvas.h>
 #include <TF2.h>
 #include <TMath.h>
-#include <TFile.h>
 
 // JKQtPlotter
 #include <jkqtplotter/jkqtplotter.h>
@@ -57,7 +56,6 @@ private:
     void GetPixelArrayFromImageFile();
     void ProcessImageData();
     [[nodiscard]] double FindBackgroundPixelValue() const;
-    [[nodiscard]] uint32_t AverageAroundHotPixels(const unsigned int&, const unsigned int& width = 5) const;
     void SubtractBackground(double&);
     void CalculateThresholdPixelValue(double&);
     void CalculateBeamSpotEnergyFraction();
