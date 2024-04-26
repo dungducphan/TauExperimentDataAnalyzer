@@ -141,37 +141,6 @@ double ImageDataModel::FindBackgroundPixelValue() const {
     return MinBin;
 }
 
-uint32_t ImageDataModel::AverageAroundHotPixels(const unsigned int& pixelIndex, const unsigned int& width) const {
-    // FIXME: really hacky right now, implement something more robust later
-
-    uint32_t sum = 0;
-
-    unsigned int countUnsaturatedPixels_forward = 0;
-    // Go forward 5 values
-    unsigned int forward = 0;
-    while (pixelIndex + forward < NPixelX * NPixelY && countUnsaturatedPixels_forward < width) {
-        if (pixelArrayData[pixelIndex + forward] < maxPixelValue) {
-            sum += pixelArrayData[pixelIndex + forward];
-            countUnsaturatedPixels_forward++;
-        }
-        forward++;
-    }
-
-
-    // Go backward 5 values
-    unsigned int backward = 0;
-    unsigned int countUnsaturatedPixels_backward = 0;
-    while (pixelIndex - backward >= 0 && countUnsaturatedPixels_backward < width) {
-        if (pixelArrayData[pixelIndex - backward] < maxPixelValue) {
-            sum += pixelArrayData[pixelIndex - backward];
-            countUnsaturatedPixels_backward++;
-        }
-        backward++;
-    }
-
-    return (uint32_t) (sum / (countUnsaturatedPixels_forward + countUnsaturatedPixels_backward));
-}
-
 void ImageDataModel::SubtractBackground(double& backgroundPixelValue) {
     // This function performs 4 tasks at once (which goes against the Single Responsibility Principle but
     // is done for performance reasons):
@@ -180,33 +149,16 @@ void ImageDataModel::SubtractBackground(double& backgroundPixelValue) {
     // 3. Calculate the maximum pixel value of the image.
     // 4. Fill the pixel value histogram.
 
-    // FIXME: quick hack to avoid hot pixels problem, refactor the code later for readability
-
-    // Subtract the background
     pixelValueHistogram->Reset();
+    totalPixelValueOfImage = 0;
+    maxPixelValue = 0;
     for (unsigned int i = 0; i < NPixelX * NPixelY; i++) {
         pixelArrayData[i] -= (uint32_t) backgroundPixelValue;
-        pixelValueHistogram->Fill(pixelArrayData[i]);
-    }
-
-    // Find "true" max pixel value (disregarding the hot pixels)
-    maxPixelValue = 0;
-    for (int i = 0; i < pixelValueHistogram->GetSize(); i++) {
-        if (pixelValueHistogram->GetBinContent(i) > 0) {
-            maxPixelValue = pixelValueHistogram->GetBinCenter(i);
-        }
-        if (i < pixelValueHistogram->GetSize() - 1 && pixelValueHistogram->GetBinContent(i + 1) == 0) {
-            break;
-        }
-    }
-
-    // Correct the hot pixels
-    totalPixelValueOfImage = 0;
-    for (unsigned int i = 0; i < NPixelX * NPixelY; i++) {
-        if (pixelArrayData[i] > maxPixelValue) {
-            pixelArrayData[i] = AverageAroundHotPixels(i);
-        }
         totalPixelValueOfImage += pixelArrayData[i];
+        pixelValueHistogram->Fill(pixelArrayData[i]);
+        if (pixelArrayData[i] > maxPixelValue) {
+            maxPixelValue = pixelArrayData[i];
+        }
     }
 }
 
@@ -228,7 +180,7 @@ void ImageDataModel::CalculateBeamSpotEnergyFraction() {
 void ImageDataModel::GetBeamCenterPosition() {
     auto profile2DOfPixelsAboveThreshold = new TH2D("PixelsWithValueAboveThreshold", "PixelsWithValueAboveThreshold", NPixelX, 0, NPixelX, NPixelY, 0, NPixelY);
     for (size_t i = 0; i < NPixelX * NPixelY; i++) {
-        if (pixelArrayData[i] >= thresholdPixelValue) profile2DOfPixelsAboveThreshold->Fill(i % NPixelX, i / NPixelX);
+        if (pixelArrayData[i] >= thresholdPixelValue) profile2DOfPixelsAboveThreshold->Fill(i % NPixelX, i / NPixelX, pixelArrayData[i]);
     }
     centroidNX = TMath::Nint(profile2DOfPixelsAboveThreshold->ProjectionX()->GetMean());
     centroidNY = TMath::Nint(profile2DOfPixelsAboveThreshold->ProjectionY()->GetMean());
@@ -309,21 +261,13 @@ void ImageDataModel::DrawProjections() {
     // Fit the projection X
     auto f1 = new TF1("f1", "gaus", xmin, xmax);
     f1->SetParameters(10, centroidX, 10);
-    //    auto cx = new TCanvas("cx", "cx", 800, 800);
-    //    cx->cd();
-    //    hPx->Draw();
     hPx->Fit("f1", "0RQ"); // 0 = do not plot, R = fit range, Q = quiet, do not print results
-    //    cx->SaveAs("hPx.png");
     centroidXFWHMInMicrometers = f1->GetParameter(2) * 2.355;
 
     // Fit the projection Y
     auto f2 = new TF1("f2", "gaus", ymin, ymax);
     f2->SetParameters(10, centroidY, 10);
-    //    auto cy = new TCanvas("cy", "cy", 800, 800);
-    //    cy->cd();
-    //    hPy->Draw();
     hPy->Fit("f2", "0RQ"); // 0 = do not plot, R = fit range, Q = quiet, do not print results
-    //    cy->SaveAs("hPy.png");
     centroidYFWHMInMicrometers = f2->GetParameter(2) * 2.355;
 
     // Emit the FWHM of the centroid
